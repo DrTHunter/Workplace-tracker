@@ -16,15 +16,54 @@
         body {
             background-color: #f5f7fa;
             padding: 10px;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #1a73e8;
+            color: white;
+            padding: 10px;
+            border-radius: 10px 0 0 10px;
+            margin-right: 5px;
+            height: calc(100vh - 20px);
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-content {
+            padding-left: 15px;
+        }
+
+        .sidebar-item {
+            padding: 8px 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-item:hover {
+            background-color: #1557b0;
         }
 
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            flex: 1;
+            max-width: 1000px;
             background-color: white;
-            border-radius: 10px;
+            border-radius: 0 10px 10px 0;
             box-shadow: 0 2px 15px rgba(0,0,0,0.1);
             overflow: hidden;
+            height: calc(100vh - 20px);
+            display: flex;
+            flex-direction: column;
         }
 
         .tabs {
@@ -57,6 +96,8 @@
         .tab-content {
             display: none;
             padding: 15px;
+            overflow-y: auto;
+            flex: 1;
         }
 
         .tab-content.active {
@@ -247,6 +288,7 @@
             border-radius: 3px;
             overflow: hidden;
             margin-bottom: 5px;
+            width: 200px;
         }
 
         .timeline-progress {
@@ -260,11 +302,63 @@
             justify-content: space-between;
             font-size: 11px;
             color: #666;
+            width: 200px;
+        }
+
+        .subheading {
+            background-color: #e0e0e0;
+            padding: 5px 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .subheading-input {
+            border: none;
+            background: transparent;
+            font-weight: bold;
+            flex: 1;
+            padding: 2px 5px;
+        }
+
+        .subheading-input:focus {
+            outline: none;
+            background: white;
+        }
+
+        .contact-details div {
+            margin: 5px 0;
+        }
+
+        .contact-details input {
+            border: none;
+            border-bottom: 1px dashed #666;
+            padding: 2px 5px;
+            background: transparent;
+        }
+
+        .contact-details input:focus {
+            outline: none;
+            background: white;
         }
 
         @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                margin-bottom: 5px;
+                border-radius: 10px;
+            }
+            
             .container {
-                border-radius: 0;
+                border-radius: 10px;
+                height: auto;
             }
             
             .tab-button {
@@ -289,6 +383,26 @@
     </style>
 </head>
 <body>
+    <div class="sidebar">
+        <div class="sidebar-header" onclick="toggleSidebar('tasks')">
+            <span>Active Tasks</span>
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-content" id="tasks-sidebar"></div>
+        
+        <div class="sidebar-header" onclick="toggleSidebar('contacts')">
+            <span>Contacts</span>
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-content" id="contacts-sidebar"></div>
+        
+        <div class="sidebar-header" onclick="toggleSidebar('processes')">
+            <span>Processes</span>
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-content" id="processes-sidebar"></div>
+    </div>
+
     <div class="container">
         <div class="tabs">
             <button class="tab-button active" onclick="openTab('tasks')"><i class="fas fa-tasks"></i> Tasks</button>
@@ -310,6 +424,10 @@
                     <input type="text" id="taskTitle" placeholder="Task title">
                 </div>
                 <div class="input-group">
+                    <label for="taskStart">Start Date</label>
+                    <input type="date" id="taskStart">
+                </div>
+                <div class="input-group">
                     <label for="taskDue">Due Date</label>
                     <input type="date" id="taskDue">
                 </div>
@@ -326,14 +444,12 @@
                 <button onclick="addTask()">Add Task</button>
             </div>
             
-            <!-- New notes container that spans full width -->
             <div class="notes-container">
                 <textarea id="taskNotes" class="large-notes" placeholder="Notes..."></textarea>
             </div>
 
             <div class="task-list">
-                <h3>Active Tasks</h3>
-                <div id="activeList"></div>
+                <div id="taskSubheadings"></div>
                 <h3 class="completed-header">Completed Tasks</h3>
                 <div id="doneList"></div>
             </div>
@@ -350,11 +466,11 @@
                 <button onclick="addContact()">Add Contact</button>
             </div>
             
-            <!-- New notes container that spans full width -->
             <div class="notes-container">
                 <textarea id="contactNotes" class="large-notes" placeholder="Notes..."></textarea>
             </div>
             
+            <div id="contactSubheadings"></div>
             <div id="contactsList"></div>
         </div>
 
@@ -366,11 +482,11 @@
                 <button onclick="addProcess()">Add Process</button>
             </div>
             
-            <!-- New notes container that spans full width -->
             <div class="notes-container">
                 <textarea id="processSteps" class="large-notes" placeholder="Step-by-step instructions..."></textarea>
             </div>
             
+            <div id="processSubheadings"></div>
             <div id="processesList"></div>
         </div>
     </div>
@@ -382,6 +498,9 @@
         let processes = JSON.parse(localStorage.getItem('processes')) || [];
         let categories = JSON.parse(localStorage.getItem('categories')) || ['Meeting', 'Development', 'Research', 'Administration'];
         let selectedPriority = 1;
+        let taskSubheadings = JSON.parse(localStorage.getItem('taskSubheadings')) || ['General'];
+        let contactSubheadings = JSON.parse(localStorage.getItem('contactSubheadings')) || ['General'];
+        let processSubheadings = JSON.parse(localStorage.getItem('processSubheadings')) || ['General'];
 
         // Tab Navigation
         function openTab(tabName) {
@@ -389,6 +508,194 @@
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
             event.currentTarget.classList.add('active');
+        }
+
+        // Sidebar functions
+        function toggleSidebar(type) {
+            const content = document.getElementById(`${type}-sidebar`);
+            const icon = event.currentTarget.querySelector('i');
+            
+            if (content.style.display === 'none' || !content.style.display) {
+                content.style.display = 'block';
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+                updateSidebar(type);
+            } else {
+                content.style.display = 'none';
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        }
+
+        function updateSidebar(type) {
+            const sidebar = document.getElementById(`${type}-sidebar`);
+            if (!sidebar) return;
+            
+            sidebar.innerHTML = '';
+            
+            if (type === 'tasks') {
+                const activeTasks = tasks.filter(t => !t.completed);
+                activeTasks.forEach(task => {
+                    const item = document.createElement('div');
+                    item.className = 'sidebar-item';
+                    item.textContent = task.title;
+                    item.onclick = () => scrollToItem('task', task.id);
+                    sidebar.appendChild(item);
+                });
+            } else if (type === 'contacts') {
+                contacts.forEach(contact => {
+                    const item = document.createElement('div');
+                    item.className = 'sidebar-item';
+                    item.textContent = contact.name;
+                    item.onclick = () => scrollToItem('contact', contact.id);
+                    sidebar.appendChild(item);
+                });
+            } else if (type === 'processes') {
+                processes.forEach(process => {
+                    const item = document.createElement('div');
+                    item.className = 'sidebar-item';
+                    item.textContent = process.title;
+                    item.onclick = () => scrollToItem('process', process.id);
+                    sidebar.appendChild(item);
+                });
+            }
+        }
+
+        function scrollToItem(type, id) {
+            const element = document.querySelector(`.${type}-item[data-id="${id}"]`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.style.animation = 'highlight 1s';
+                setTimeout(() => element.style.animation = '', 1000);
+            }
+        }
+
+        // Subheading functions
+        function renderSubheadings(type) {
+            const container = document.getElementById(`${type}Subheadings`);
+            const subheadings = type === 'task' ? taskSubheadings : 
+                              type === 'contact' ? contactSubheadings : processSubheadings;
+            
+            container.innerHTML = '';
+            
+            subheadings.forEach((subheading, index) => {
+                const subheadingElement = document.createElement('div');
+                subheadingElement.className = 'subheading';
+                
+                const input = document.createElement('input');
+                input.className = 'subheading-input';
+                input.value = subheading;
+                input.placeholder = 'Subheading name';
+                input.onchange = () => updateSubheading(type, index, input.value);
+                
+                const addBtn = document.createElement('button');
+                addBtn.innerHTML = '<i class="fas fa-plus"></i>';
+                addBtn.style.marginLeft = '5px';
+                addBtn.style.padding = '2px 5px';
+                addBtn.onclick = () => addSubheading(type, index + 1);
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.style.marginLeft = '5px';
+                removeBtn.style.padding = '2px 5px';
+                removeBtn.style.backgroundColor = '#dc3545';
+                removeBtn.onclick = () => removeSubheading(type, index);
+                removeBtn.disabled = subheadings.length <= 1;
+                
+                subheadingElement.appendChild(input);
+                subheadingElement.appendChild(addBtn);
+                subheadingElement.appendChild(removeBtn);
+                
+                container.appendChild(subheadingElement);
+                
+                // Render items for this subheading
+                renderItemsForSubheading(type, subheading);
+            });
+        }
+
+        function updateSubheading(type, index, value) {
+            const subheadings = type === 'task' ? taskSubheadings : 
+                              type === 'contact' ? contactSubheadings : processSubheadings;
+            
+            subheadings[index] = value;
+            saveSubheadings(type);
+            renderSubheadings(type);
+        }
+
+        function addSubheading(type, index) {
+            const subheadings = type === 'task' ? taskSubheadings : 
+                              type === 'contact' ? contactSubheadings : processSubheadings;
+            
+            subheadings.splice(index, 0, 'New Subheading');
+            saveSubheadings(type);
+            renderSubheadings(type);
+        }
+
+        function removeSubheading(type, index) {
+            const subheadings = type === 'task' ? taskSubheadings : 
+                              type === 'contact' ? contactSubheadings : processSubheadings;
+            
+            if (subheadings.length <= 1) return;
+            
+            // Move items from this subheading to the first subheading
+            if (type === 'task') {
+                tasks.forEach(task => {
+                    if (task.subheading === subheadings[index]) {
+                        task.subheading = subheadings[0];
+                    }
+                });
+                saveTasks();
+            } else if (type === 'contact') {
+                contacts.forEach(contact => {
+                    if (contact.subheading === subheadings[index]) {
+                        contact.subheading = subheadings[0];
+                    }
+                });
+                saveContacts();
+            } else if (type === 'process') {
+                processes.forEach(process => {
+                    if (process.subheading === subheadings[index]) {
+                        process.subheading = subheadings[0];
+                    }
+                });
+                saveProcesses();
+            }
+            
+            subheadings.splice(index, 1);
+            saveSubheadings(type);
+            renderSubheadings(type);
+        }
+
+        function saveSubheadings(type) {
+            if (type === 'task') {
+                localStorage.setItem('taskSubheadings', JSON.stringify(taskSubheadings));
+            } else if (type === 'contact') {
+                localStorage.setItem('contactSubheadings', JSON.stringify(contactSubheadings));
+            } else if (type === 'process') {
+                localStorage.setItem('processSubheadings', JSON.stringify(processSubheadings));
+            }
+        }
+
+        function renderItemsForSubheading(type, subheading) {
+            const container = document.getElementById(`${type === 'task' ? 'active' : type === 'contact' ? 'contacts' : 'processes'}List`);
+            
+            let items = [];
+            if (type === 'task') {
+                items = tasks.filter(t => !t.completed && t.subheading === subheading);
+            } else if (type === 'contact') {
+                items = contacts.filter(c => c.subheading === subheading);
+            } else if (type === 'process') {
+                items = processes.filter(p => p.subheading === subheading);
+            }
+            
+            if (items.length === 0) return;
+            
+            items.forEach(item => {
+                const element = type === 'task' ? createTaskElement(item) : 
+                              type === 'contact' ? createContactElement(item) : 
+                              createProcessElement(item);
+                container.appendChild(element);
+            });
         }
 
         // Categories
@@ -438,12 +745,14 @@
                 id: Date.now(),
                 title: document.getElementById('taskTitle').value.trim(),
                 category: document.getElementById('taskCategory').value,
+                start: document.getElementById('taskStart').value,
                 due: document.getElementById('taskDue').value,
                 priority: priorityText,
                 priorityValue: selectedPriority,
                 notes: document.getElementById('taskNotes').value,
                 completed: false,
-                created: new Date().toISOString()
+                created: new Date().toISOString(),
+                subheading: taskSubheadings[0]
             };
 
             if (!task.title) return;
@@ -452,6 +761,7 @@
             saveTasks();
             renderTasks();
             clearTaskForm();
+            updateSidebar('tasks');
         }
 
         function renderTasks() {
@@ -461,28 +771,33 @@
             activeList.innerHTML = '';
             doneList.innerHTML = '';
 
-            tasks.forEach((task, index) => {
-                const container = task.completed ? doneList : activeList;
-                const taskElement = createTaskElement(task, index);
-                container.appendChild(taskElement);
+            // Render active tasks under their subheadings
+            renderSubheadings('task');
+            
+            // Render completed tasks
+            const completedTasks = tasks.filter(t => t.completed);
+            completedTasks.forEach(task => {
+                const taskElement = createTaskElement(task);
+                doneList.appendChild(taskElement);
             });
         }
 
         function createTaskElement(task) {
             const taskElement = document.createElement('div');
             taskElement.className = `task-item priority-${task.priority} ${task.completed ? 'completed' : ''}`;
+            taskElement.setAttribute('data-id', task.id);
             
-            // Calculate timeline progress if due date exists
+            // Calculate timeline progress if dates exist
             let timelineHTML = '';
-            if (task.due) {
-                const progress = calculateTimelineProgress(task.created, task.due);
+            if (task.start && task.due) {
+                const progress = calculateTimelineProgress(task.start, task.due);
                 timelineHTML = `
                     <div class="timeline-container">
                         <div class="timeline-bar">
                             <div class="timeline-progress" style="width: ${progress.percentage}%"></div>
                         </div>
                         <div class="timeline-dates">
-                            <span>${formatDate(task.created)}</span>
+                            <span>${formatDate(task.start)}</span>
                             <span>${formatDate(task.due)}</span>
                         </div>
                     </div>
@@ -495,6 +810,11 @@
                 starsHTML += `<i class="fas fa-star ${i <= task.priorityValue ? 'active' : ''}" 
                              onclick="updateTaskPriority(${task.id}, ${i})"></i>`;
             }
+
+            // Subheading selector
+            const subheadingOptions = taskSubheadings.map(sh => 
+                `<option value="${sh}" ${task.subheading === sh ? 'selected' : ''}>${sh}</option>`
+            ).join('');
 
             taskElement.innerHTML = `
                 <div class="move-buttons">
@@ -520,6 +840,15 @@
                             ${starsHTML}
                         </div>
                     </span>
+                    <span>Subheading: 
+                        <select class="editable" onchange="updateTaskField(${task.id}, 'subheading', this.value)">
+                            ${subheadingOptions}
+                        </select>
+                    </span>
+                    <span>Start: 
+                        <input type="date" class="editable" value="${task.start}" 
+                               onchange="updateTaskField(${task.id}, 'start', this.value)">
+                    </span>
                     <span>Due: 
                         <input type="date" class="editable" value="${task.due}" 
                                onchange="updateTaskField(${task.id}, 'due', this.value)">
@@ -527,7 +856,7 @@
                 </div>
                 ${timelineHTML}
                 <div class="notes-header" onclick="toggleNotes(this)">
-                    📝 Notes (${task.notes.length ? task.notes.split(/\s+/).length + ' words' : 'empty'})
+                    📝 Notes
                 </div>
                 <div class="notes-content">
                     <textarea class="editable" oninput="updateTaskField(${task.id}, 'notes', this.value)"
@@ -538,9 +867,9 @@
             return taskElement;
         }
 
-        function calculateTimelineProgress(createdDate, dueDate) {
+        function calculateTimelineProgress(startDate, dueDate) {
             const now = new Date();
-            const start = new Date(createdDate);
+            const start = new Date(startDate);
             const end = new Date(dueDate);
             
             // Ensure dates are valid
@@ -567,6 +896,7 @@
         }
 
         function formatDate(dateString) {
+            if (!dateString) return '';
             const options = { year: 'numeric', month: 'short', day: 'numeric' };
             return new Date(dateString).toLocaleDateString(undefined, options);
         }
@@ -587,6 +917,7 @@
                 task.completed = !task.completed;
                 saveTasks();
                 renderTasks();
+                updateSidebar('tasks');
             }
         }
 
@@ -609,7 +940,8 @@
                 email: document.getElementById('contactEmail').value.trim(),
                 phone: document.getElementById('contactPhone').value.trim(),
                 department: document.getElementById('contactDepartment').value.trim(),
-                notes: document.getElementById('contactNotes').value.trim()
+                notes: document.getElementById('contactNotes').value.trim(),
+                subheading: contactSubheadings[0]
             };
 
             if (!contact.name) return;
@@ -618,43 +950,64 @@
             saveContacts();
             renderContacts();
             clearContactForm();
+            updateSidebar('contacts');
         }
 
         function renderContacts(filteredContacts = contacts) {
             const contactsList = document.getElementById('contactsList');
-            contactsList.innerHTML = filteredContacts.map(contact => `
-                <div class="contact-item">
-                    <div class="move-buttons">
-                        <button onclick="moveContact(${contact.id}, 'up')">↑</button>
-                        <button onclick="moveContact(${contact.id}, 'down')">↓</button>
-                    </div>
-                    <div class="contact-header">
-                        <span class="editable" contenteditable="true" 
-                              oninput="updateContactField(${contact.id}, 'name', this.innerText)">
-                            ${contact.name}
-                        </span>
-                    </div>
-                    <div class="contact-details">
-                        <div>Email: <input type="email" value="${contact.email}" 
-                               onchange="updateContactField(${contact.id}, 'email', this.value)"></div>
-                        <div>Phone: <input type="tel" value="${contact.phone}" 
-                               onchange="updateContactField(${contact.id}, 'phone', this.value)"></div>
-                        <div>Department: <input type="text" value="${contact.department}" 
-                               onchange="updateContactField(${contact.id}, 'department', this.value)"></div>
-                    </div>
-                    <div class="notes-header" onclick="toggleNotes(this)">
-                        📝 Notes (${contact.notes.length ? contact.notes.split(/\s+/).length + ' words' : 'empty'})
-                    </div>
-                    <div class="notes-content">
-                        <textarea class="editable" 
-                                  oninput="updateContactField(${contact.id}, 'notes', this.value)"
-                                  style="width:100%; min-height: 120px;">
-                            ${contact.notes}
-                        </textarea>
-                    </div>
-                    <button class="delete-btn" onclick="confirmDelete('contact', ${contact.id})">Delete</button>
+            contactsList.innerHTML = '';
+            
+            // Render contacts under their subheadings
+            renderSubheadings('contact');
+        }
+
+        function createContactElement(contact) {
+            const contactElement = document.createElement('div');
+            contactElement.className = 'contact-item';
+            contactElement.setAttribute('data-id', contact.id);
+            
+            // Subheading selector
+            const subheadingOptions = contactSubheadings.map(sh => 
+                `<option value="${sh}" ${contact.subheading === sh ? 'selected' : ''}>${sh}</option>`
+            ).join('');
+
+            contactElement.innerHTML = `
+                <div class="move-buttons">
+                    <button onclick="moveContact(${contact.id}, 'up')">↑</button>
+                    <button onclick="moveContact(${contact.id}, 'down')">↓</button>
                 </div>
-            `).join('');
+                <div class="contact-header">
+                    <span class="editable" contenteditable="true" 
+                          oninput="updateContactField(${contact.id}, 'name', this.innerText)">
+                        ${contact.name}
+                    </span>
+                </div>
+                <div class="contact-details">
+                    <div>Email: <input type="email" value="${contact.email}" 
+                           onchange="updateContactField(${contact.id}, 'email', this.value)"></div>
+                    <div>Phone: <input type="tel" value="${contact.phone}" 
+                           onchange="updateContactField(${contact.id}, 'phone', this.value)"></div>
+                    <div>Department: <input type="text" value="${contact.department}" 
+                           onchange="updateContactField(${contact.id}, 'department', this.value)"></div>
+                    <div>Subheading: 
+                        <select class="editable" onchange="updateContactField(${contact.id}, 'subheading', this.value)">
+                            ${subheadingOptions}
+                        </select>
+                    </div>
+                </div>
+                <div class="notes-header" onclick="toggleNotes(this)">
+                    📝 Notes
+                </div>
+                <div class="notes-content">
+                    <textarea class="editable" 
+                              oninput="updateContactField(${contact.id}, 'notes', this.value)"
+                              style="width:100%; min-height: 120px;">
+                        ${contact.notes}
+                    </textarea>
+                </div>
+                <button class="delete-btn" onclick="confirmDelete('contact', ${contact.id})">Delete</button>
+            `;
+            return contactElement;
         }
 
         function moveContact(id, direction) {
@@ -675,7 +1028,8 @@
                 title: document.getElementById('processTitle').value.trim(),
                 steps: document.getElementById('processSteps').value,
                 created: new Date().toISOString(),
-                updated: new Date().toISOString()
+                updated: new Date().toISOString(),
+                subheading: processSubheadings[0]
             };
 
             if (!process.title) return;
@@ -684,35 +1038,58 @@
             saveProcesses();
             renderProcesses();
             clearProcessForm();
+            updateSidebar('processes');
         }
 
         function renderProcesses(filteredProcesses = processes) {
             const processesList = document.getElementById('processesList');
-            processesList.innerHTML = filteredProcesses.map(process => `
-                <div class="process-item">
-                    <div class="move-buttons">
-                        <button onclick="moveProcess(${process.id}, 'up')">↑</button>
-                        <button onclick="moveProcess(${process.id}, 'down')">↓</button>
-                    </div>
-                    <div class="process-header">
-                        <span class="editable" contenteditable="true" 
-                              oninput="updateProcessField(${process.id}, 'title', this.innerText)">
-                            ${process.title}
-                        </span>
-                    </div>
-                    <div class="notes-header" onclick="toggleNotes(this)">
-                        📝 Steps (${process.steps.length ? process.steps.split(/\n/).length + ' steps' : 'empty'})
-                    </div>
-                    <div class="notes-content">
-                        <textarea class="editable" 
-                                  oninput="updateProcessField(${process.id}, 'steps', this.value)"
-                                  style="width:100%; min-height: 120px;">
-                            ${process.steps}
-                        </textarea>
-                    </div>
-                    <button class="delete-btn" onclick="confirmDelete('process', ${process.id})">Delete</button>
+            processesList.innerHTML = '';
+            
+            // Render processes under their subheadings
+            renderSubheadings('process');
+        }
+
+        function createProcessElement(process) {
+            const processElement = document.createElement('div');
+            processElement.className = 'process-item';
+            processElement.setAttribute('data-id', process.id);
+            
+            // Subheading selector
+            const subheadingOptions = processSubheadings.map(sh => 
+                `<option value="${sh}" ${process.subheading === sh ? 'selected' : ''}>${sh}</option>`
+            ).join('');
+
+            processElement.innerHTML = `
+                <div class="move-buttons">
+                    <button onclick="moveProcess(${process.id}, 'up')">↑</button>
+                    <button onclick="moveProcess(${process.id}, 'down')">↓</button>
                 </div>
-            `).join('');
+                <div class="process-header">
+                    <span class="editable" contenteditable="true" 
+                          oninput="updateProcessField(${process.id}, 'title', this.innerText)">
+                        ${process.title}
+                    </span>
+                </div>
+                <div class="task-meta">
+                    <span>Subheading: 
+                        <select class="editable" onchange="updateProcessField(${process.id}, 'subheading', this.value)">
+                            ${subheadingOptions}
+                        </select>
+                    </span>
+                </div>
+                <div class="notes-header" onclick="toggleNotes(this)">
+                    📝 Steps
+                </div>
+                <div class="notes-content">
+                    <textarea class="editable" 
+                              oninput="updateProcessField(${process.id}, 'steps', this.value)"
+                              style="width:100%; min-height: 120px;">
+                        ${process.steps}
+                    </textarea>
+                </div>
+                <button class="delete-btn" onclick="confirmDelete('process', ${process.id})">Delete</button>
+            `;
+            return processElement;
         }
 
         function moveProcess(id, direction) {
@@ -739,18 +1116,21 @@
             tasks = tasks.filter(t => t.id !== id);
             saveTasks();
             renderTasks();
+            updateSidebar('tasks');
         }
 
         function deleteContact(id) {
             contacts = contacts.filter(c => c.id !== id);
             saveContacts();
             renderContacts();
+            updateSidebar('contacts');
         }
 
         function deleteProcess(id) {
             processes = processes.filter(p => p.id !== id);
             saveProcesses();
             renderProcesses();
+            updateSidebar('processes');
         }
 
         function updateTaskField(id, field, value) {
@@ -758,6 +1138,10 @@
             if (task) {
                 task[field] = value;
                 saveTasks();
+                if (field === 'subheading') {
+                    renderTasks();
+                    updateSidebar('tasks');
+                }
             }
         }
 
@@ -766,6 +1150,13 @@
             if (contact) {
                 contact[field] = value;
                 saveContacts();
+                if (field === 'subheading') {
+                    renderContacts();
+                    updateSidebar('contacts');
+                }
+                if (field === 'name') {
+                    updateSidebar('contacts');
+                }
             }
         }
 
@@ -775,6 +1166,13 @@
                 process[field] = value;
                 process.updated = new Date().toISOString();
                 saveProcesses();
+                if (field === 'subheading') {
+                    renderProcesses();
+                    updateSidebar('processes');
+                }
+                if (field === 'title') {
+                    updateSidebar('processes');
+                }
             }
         }
 
@@ -790,7 +1188,31 @@
                     String(val).toLowerCase().includes(searchTerm)
                 )
             );
-            renderContacts(filtered);
+            
+            const contactsList = document.getElementById('contactsList');
+            contactsList.innerHTML = '';
+            
+            // Group by subheading
+            const grouped = {};
+            filtered.forEach(contact => {
+                if (!grouped[contact.subheading]) {
+                    grouped[contact.subheading] = [];
+                }
+                grouped[contact.subheading].push(contact);
+            });
+            
+            // Render each group
+            for (const [subheading, items] of Object.entries(grouped)) {
+                const subheadingElement = document.createElement('div');
+                subheadingElement.className = 'subheading';
+                subheadingElement.textContent = subheading;
+                contactsList.appendChild(subheadingElement);
+                
+                items.forEach(contact => {
+                    const contactElement = createContactElement(contact);
+                    contactsList.appendChild(contactElement);
+                });
+            }
         }
 
         function searchProcesses() {
@@ -799,12 +1221,37 @@
                 p.title.toLowerCase().includes(searchTerm) ||
                 p.steps.toLowerCase().includes(searchTerm)
             );
-            renderProcesses(filtered);
+            
+            const processesList = document.getElementById('processesList');
+            processesList.innerHTML = '';
+            
+            // Group by subheading
+            const grouped = {};
+            filtered.forEach(process => {
+                if (!grouped[process.subheading]) {
+                    grouped[process.subheading] = [];
+                }
+                grouped[process.subheading].push(process);
+            });
+            
+            // Render each group
+            for (const [subheading, items] of Object.entries(grouped)) {
+                const subheadingElement = document.createElement('div');
+                subheadingElement.className = 'subheading';
+                subheadingElement.textContent = subheading;
+                processesList.appendChild(subheadingElement);
+                
+                items.forEach(process => {
+                    const processElement = createProcessElement(process);
+                    processesList.appendChild(processElement);
+                });
+            }
         }
 
         // Form Clearing
         function clearTaskForm() {
             document.getElementById('taskTitle').value = '';
+            document.getElementById('taskStart').value = '';
             document.getElementById('taskDue').value = '';
             document.getElementById('taskNotes').value = '';
             // Reset star rating
@@ -844,6 +1291,11 @@
             renderTasks();
             renderContacts();
             renderProcesses();
+            
+            // Initialize sidebar with tasks expanded
+            document.getElementById('tasks-sidebar').style.display = 'block';
+            document.querySelector('.sidebar-header').querySelector('i').classList.add('fa-chevron-up');
+            updateSidebar('tasks');
         };
     </script>
 </body>
