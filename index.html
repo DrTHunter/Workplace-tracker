@@ -63,11 +63,6 @@
             align-items: center;
         }
 
-        .sidebar-item i {
-            font-size: 16px;
-            margin-bottom: 3px;
-        }
-
         .sidebar-item span {
             font-size: 10px;
         }
@@ -127,13 +122,6 @@
             cursor: pointer;
             transition: background-color 0.3s;
             font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .tab-button i {
-            font-size: 16px;
         }
 
         .tab-button.active {
@@ -233,6 +221,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            margin-bottom: 10px;
         }
 
         .task-meta {
@@ -283,23 +272,23 @@
         .delete-btn {
             background-color: #dc3545;
             position: absolute;
-            top: 8px;
-            right: 8px;
+            top: 12px;
+            right: 12px;
             padding: 6px 12px;
         }
 
         .move-buttons {
             position: absolute;
-            top: 40px;
-            right: 8px;
+            top: 50px;
+            right: 12px;
             display: flex;
             gap: 5px;
         }
 
         .subheading-selector {
             position: absolute;
-            top: 72px;
-            right: 8px;
+            top: 88px;
+            right: 12px;
             display: flex;
             gap: 5px;
         }
@@ -385,6 +374,7 @@
             font-weight: bold;
             display: flex;
             align-items: center;
+            position: relative;
         }
 
         .subheading-input {
@@ -400,6 +390,12 @@
             background: white;
         }
 
+        .subheading-controls {
+            display: flex;
+            gap: 5px;
+            margin-left: 10px;
+        }
+
         .contact-details {
             margin: 5px 0;
         }
@@ -408,11 +404,11 @@
             margin: 5px 0;
         }
 
-        .toggle-inputs-btn {
+        .new-item-btn {
             margin: 10px 0;
-            padding: 5px 10px;
-            font-size: 12px;
-            background-color: #6c757d;
+            padding: 8px 15px;
+            font-size: 13px;
+            background-color: #28a745;
         }
 
         .reset-btn {
@@ -474,19 +470,16 @@
             <i class="fas fa-bars"></i>
         </button>
         <div class="sidebar-item active" onclick="openTab('tasks')">
-            <i class="fas fa-tasks"></i>
             <span>Tasks</span>
         </div>
         <div class="sidebar-content" id="tasks-sidebar"></div>
         
         <div class="sidebar-item" onclick="openTab('contacts')">
-            <i class="fas fa-address-book"></i>
             <span>Contacts</span>
         </div>
         <div class="sidebar-content" id="contacts-sidebar"></div>
         
         <div class="sidebar-item" onclick="openTab('processes')">
-            <i class="fas fa-project-diagram"></i>
             <span>Processes</span>
         </div>
         <div class="sidebar-content" id="processes-sidebar"></div>
@@ -494,15 +487,15 @@
 
     <div class="container">
         <div class="tabs">
-            <button class="tab-button active" onclick="openTab('tasks')"><i class="fas fa-tasks"></i> Tasks</button>
-            <button class="tab-button" onclick="openTab('contacts')"><i class="fas fa-address-book"></i> Contacts</button>
-            <button class="tab-button" onclick="openTab('processes')"><i class="fas fa-project-diagram"></i> Processes</button>
+            <button class="tab-button active" onclick="openTab('tasks')">Tasks</button>
+            <button class="tab-button" onclick="openTab('contacts')">Contacts</button>
+            <button class="tab-button" onclick="openTab('processes')">Processes</button>
         </div>
 
         <!-- Tasks Tab -->
         <div id="tasks" class="tab-content active">
-            <button class="toggle-inputs-btn" onclick="toggleInputs('tasks')">
-                <i class="fas fa-chevron-down"></i> Toggle Task Inputs
+            <button class="new-item-btn" onclick="toggleInputs('tasks')">
+                New Task
             </button>
             <div class="input-section">
                 <div class="input-group">
@@ -543,8 +536,7 @@
                 </div>
             </div>
 
-            <div class="task-list">
-                <div id="taskSubheadings"></div>
+            <div class="task-list" id="tasksList">
                 <h3 class="completed-header">Completed Tasks</h3>
                 <div id="doneList"></div>
             </div>
@@ -552,8 +544,8 @@
 
         <!-- Contacts Tab -->
         <div id="contacts" class="tab-content">
-            <button class="toggle-inputs-btn" onclick="toggleInputs('contacts')">
-                <i class="fas fa-chevron-down"></i> Toggle Contact Inputs
+            <button class="new-item-btn" onclick="toggleInputs('contacts')">
+                New Contact
             </button>
             <input type="text" class="search-bar" id="contactSearch" placeholder="Search contacts..." oninput="searchContacts()">
             <div class="input-section">
@@ -576,14 +568,13 @@
                 </div>
             </div>
             
-            <div id="contactSubheadings"></div>
             <div id="contactsList"></div>
         </div>
 
         <!-- Processes Tab -->
         <div id="processes" class="tab-content">
-            <button class="toggle-inputs-btn" onclick="toggleInputs('processes')">
-                <i class="fas fa-chevron-down"></i> Toggle Process Inputs
+            <button class="new-item-btn" onclick="toggleInputs('processes')">
+                New Process
             </button>
             <input type="text" class="search-bar" id="processSearch" placeholder="Search processes..." oninput="searchProcesses()">
             <div class="input-section">
@@ -598,10 +589,9 @@
             </div>
             
             <button class="reset-btn" onclick="resetAllData()">
-                <i class="fas fa-trash"></i> Reset All Data
+                Reset All Data
             </button>
             
-            <div id="processSubheadings"></div>
             <div id="processesList"></div>
         </div>
     </div>
@@ -616,6 +606,7 @@
         let taskSubheadings = JSON.parse(localStorage.getItem('taskSubheadings')) || ['General'];
         let contactSubheadings = JSON.parse(localStorage.getItem('contactSubheadings')) || ['General'];
         let processSubheadings = JSON.parse(localStorage.getItem('processSubheadings')) || ['General'];
+        let activeSidebar = 'tasks';
 
         // Tab Navigation
         function openTab(tabName) {
@@ -632,6 +623,7 @@
             else if (tabName === 'contacts') sidebarItems[1].classList.add('active');
             else if (tabName === 'processes') sidebarItems[2].classList.add('active');
             
+            activeSidebar = tabName;
             updateSidebar(tabName);
         }
 
@@ -644,6 +636,7 @@
             if (sidebar.classList.contains('expanded')) {
                 icon.classList.remove('fa-bars');
                 icon.classList.add('fa-times');
+                updateSidebar(activeSidebar);
             } else {
                 icon.classList.remove('fa-times');
                 icon.classList.add('fa-bars');
@@ -697,16 +690,14 @@
         // Toggle input sections
         function toggleInputs(tab) {
             const inputSection = document.querySelector(`#${tab} .input-section`);
-            const toggleBtn = document.querySelector(`#${tab} .toggle-inputs-btn i`);
+            const toggleBtn = document.querySelector(`#${tab} .new-item-btn`);
             
             inputSection.classList.toggle('collapsed');
             
             if (inputSection.classList.contains('collapsed')) {
-                toggleBtn.classList.remove('fa-chevron-down');
-                toggleBtn.classList.add('fa-chevron-up');
+                toggleBtn.textContent = tab === 'tasks' ? 'New Task' : tab === 'contacts' ? 'New Contact' : 'New Process';
             } else {
-                toggleBtn.classList.remove('fa-chevron-up');
-                toggleBtn.classList.add('fa-chevron-down');
+                toggleBtn.textContent = 'Hide Form';
             }
         }
 
@@ -745,57 +736,21 @@
 
         // Subheading functions
         function renderSubheadings(type) {
-            const container = document.getElementById(`${type}Subheadings`);
-            const listContainer = type === 'task' ? document.querySelector('#tasks .task-list') : 
+            const listContainer = type === 'task' ? document.getElementById('tasksList') : 
                                type === 'contact' ? document.getElementById('contactsList') : 
                                document.getElementById('processesList');
             const subheadings = type === 'task' ? taskSubheadings : 
                               type === 'contact' ? contactSubheadings : processSubheadings;
             
-            container.innerHTML = '';
-            if (type === 'task') {
-                document.getElementById('doneList').innerHTML = '';
-            } else {
-                listContainer.innerHTML = '';
-            }
+            listContainer.innerHTML = type === 'task' ? '<h3 class="completed-header">Completed Tasks</h3><div id="doneList"></div>' : '';
             
             subheadings.forEach((subheading, index) => {
-                // Add subheading to management area
-                const subheadingElement = document.createElement('div');
-                subheadingElement.className = 'subheading';
-                
-                const input = document.createElement('input');
-                input.className = 'subheading-input';
-                input.value = subheading;
-                input.placeholder = 'Subheading name';
-                input.onchange = () => updateSubheading(type, index, input.value);
-                
-                const addBtn = document.createElement('button');
-                addBtn.innerHTML = '<i class="fas fa-plus"></i>';
-                addBtn.style.marginLeft = '5px';
-                addBtn.style.padding = '2px 5px';
-                addBtn.onclick = () => addSubheading(type, index + 1);
-                
-                const removeBtn = document.createElement('button');
-                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                removeBtn.style.marginLeft = '5px';
-                removeBtn.style.padding = '2px 5px';
-                removeBtn.style.backgroundColor = '#dc3545';
-                removeBtn.onclick = () => removeSubheading(type, index);
-                removeBtn.disabled = subheadings.length <= 1;
-                
-                subheadingElement.appendChild(input);
-                subheadingElement.appendChild(addBtn);
-                subheadingElement.appendChild(removeBtn);
-                
-                container.appendChild(subheadingElement);
-                
                 // Render items for this subheading in the list container
-                renderItemsForSubheading(type, subheading, listContainer);
+                renderItemsForSubheading(type, subheading, listContainer, index);
             });
         }
 
-        function renderItemsForSubheading(type, subheading, container) {
+        function renderItemsForSubheading(type, subheading, container, index) {
             let items = [];
             if (type === 'task') {
                 items = tasks.filter(t => !t.completed && t.subheading === subheading);
@@ -805,13 +760,41 @@
                 items = processes.filter(p => p.subheading === subheading);
             }
             
-            if (items.length === 0) return;
+            if (items.length === 0 && type !== 'task') return;
             
             // Add subheading label
-            const subheadingLabel = document.createElement('div');
-            subheadingLabel.className = 'subheading';
-            subheadingLabel.textContent = subheading;
-            container.appendChild(subheadingLabel);
+            const subheadingElement = document.createElement('div');
+            subheadingElement.className = 'subheading';
+            
+            const input = document.createElement('input');
+            input.className = 'subheading-input';
+            input.value = subheading;
+            input.placeholder = 'Subheading name';
+            input.onchange = () => updateSubheading(type, index, input.value);
+            
+            const controls = document.createElement('div');
+            controls.className = 'subheading-controls';
+            
+            const addBtn = document.createElement('button');
+            addBtn.innerHTML = '+';
+            addBtn.style.padding = '2px 5px';
+            addBtn.onclick = () => addSubheading(type, index + 1);
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.innerHTML = '×';
+            removeBtn.style.padding = '2px 5px';
+            removeBtn.style.backgroundColor = '#dc3545';
+            removeBtn.onclick = () => removeSubheading(type, index);
+            removeBtn.disabled = (type === 'task' ? taskSubheadings : 
+                                type === 'contact' ? contactSubheadings : processSubheadings).length <= 1;
+            
+            controls.appendChild(addBtn);
+            controls.appendChild(removeBtn);
+            
+            subheadingElement.appendChild(input);
+            subheadingElement.appendChild(controls);
+            
+            container.appendChild(subheadingElement);
             
             // Add items
             items.forEach(item => {
@@ -820,6 +803,21 @@
                               createProcessElement(item);
                 container.appendChild(element);
             });
+            
+            if (type === 'task') {
+                const completedTasks = tasks.filter(t => t.completed && t.subheading === subheading);
+                if (completedTasks.length > 0) {
+                    const completedHeader = document.createElement('div');
+                    completedHeader.className = 'subheading';
+                    completedHeader.textContent = `${subheading} - Completed`;
+                    document.getElementById('doneList').appendChild(completedHeader);
+                    
+                    completedTasks.forEach(task => {
+                        const taskElement = createTaskElement(task);
+                        document.getElementById('doneList').appendChild(taskElement);
+                    });
+                }
+            }
         }
 
         function updateSubheading(type, index, value) {
@@ -982,18 +980,7 @@
         }
 
         function renderTasks() {
-            const taskList = document.querySelector('#tasks .task-list');
-            taskList.innerHTML = '<div id="taskSubheadings"></div><h3 class="completed-header">Completed Tasks</h3><div id="doneList"></div>';
-            
-            // Render active tasks under their subheadings
             renderSubheadings('task');
-            
-            // Render completed tasks
-            const completedTasks = tasks.filter(t => t.completed);
-            completedTasks.forEach(task => {
-                const taskElement = createTaskElement(task);
-                document.getElementById('doneList').appendChild(taskElement);
-            });
         }
 
         function createTaskElement(task) {
@@ -1066,7 +1053,7 @@
                 </div>
                 ${timelineHTML}
                 <div class="notes-header" onclick="toggleNotes(this)">
-                    📝 Notes
+                    Notes
                 </div>
                 <div class="notes-content">
                     <textarea oninput="updateTaskField(${task.id}, 'notes', this.value)"
@@ -1175,7 +1162,6 @@
         }
 
         function renderContacts(filteredContacts = contacts) {
-            // Render contacts under their subheadings
             renderSubheadings('contact');
         }
 
@@ -1202,7 +1188,7 @@
                     <div>Department: ${contact.department || 'Not specified'}</div>
                 </div>
                 <div class="notes-header" onclick="toggleNotes(this)">
-                    📝 Notes
+                    Notes
                 </div>
                 <div class="notes-content">
                     <textarea oninput="updateContactField(${contact.id}, 'notes', this.value)"
@@ -1257,7 +1243,6 @@
         }
 
         function renderProcesses(filteredProcesses = processes) {
-            // Render processes under their subheadings
             renderSubheadings('process');
         }
 
@@ -1279,7 +1264,7 @@
                     </span>
                 </div>
                 <div class="notes-header" onclick="toggleNotes(this)">
-                    📝 Steps
+                    Steps
                 </div>
                 <div class="notes-content">
                     <textarea oninput="updateProcessField(${process.id}, 'steps', this.value)"
@@ -1418,7 +1403,15 @@
             for (const [subheading, items] of Object.entries(grouped)) {
                 const subheadingElement = document.createElement('div');
                 subheadingElement.className = 'subheading';
-                subheadingElement.textContent = subheading;
+                
+                const input = document.createElement('input');
+                input.className = 'subheading-input';
+                input.value = subheading;
+                input.placeholder = 'Subheading name';
+                const index = contactSubheadings.indexOf(subheading);
+                input.onchange = () => updateSubheading('contact', index, input.value);
+                
+                subheadingElement.appendChild(input);
                 contactsList.appendChild(subheadingElement);
                 
                 items.forEach(contact => {
@@ -1451,7 +1444,15 @@
             for (const [subheading, items] of Object.entries(grouped)) {
                 const subheadingElement = document.createElement('div');
                 subheadingElement.className = 'subheading';
-                subheadingElement.textContent = subheading;
+                
+                const input = document.createElement('input');
+                input.className = 'subheading-input';
+                input.value = subheading;
+                input.placeholder = 'Subheading name';
+                const index = processSubheadings.indexOf(subheading);
+                input.onchange = () => updateSubheading('process', index, input.value);
+                
+                subheadingElement.appendChild(input);
                 processesList.appendChild(subheadingElement);
                 
                 items.forEach(process => {
