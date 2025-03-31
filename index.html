@@ -34,6 +34,7 @@
             align-items: center;
             transition: width 0.3s;
             position: relative;
+            cursor: pointer;
         }
 
         .sidebar.expanded {
@@ -151,6 +152,8 @@
             transition: all 0.3s ease;
             overflow: hidden;
             align-items: flex-end;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 15px;
         }
 
         .input-section.collapsed {
@@ -158,6 +161,8 @@
             margin-bottom: 0;
             opacity: 0;
             visibility: hidden;
+            border-bottom: none;
+            padding-bottom: 0;
         }
 
         .input-group {
@@ -231,6 +236,7 @@
         .task-title {
             font-weight: bold;
             margin-bottom: 5px;
+            width: 100%;
         }
 
         .task-meta {
@@ -246,6 +252,11 @@
             display: flex;
             align-items: center;
             gap: 5px;
+        }
+
+        .current-step {
+            margin-top: 5px;
+            width: 100%;
         }
 
         .notes-header {
@@ -308,13 +319,6 @@
             max-width: 300px;
         }
 
-        .category-management {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
         .notes-container {
             width: 100%;
             margin-top: 15px;
@@ -350,6 +354,9 @@
         .timeline-container {
             margin-top: 10px;
             width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .timeline-bar {
@@ -358,7 +365,7 @@
             border-radius: 3px;
             overflow: hidden;
             margin-bottom: 5px;
-            width: 200px;
+            flex-grow: 1;
         }
 
         .timeline-progress {
@@ -372,7 +379,6 @@
             justify-content: space-between;
             font-size: 11px;
             color: #666;
-            width: 200px;
         }
 
         .subheading {
@@ -385,6 +391,7 @@
             align-items: center;
             position: relative;
             cursor: pointer;
+            height: 30px;
         }
 
         .subheading-input {
@@ -393,6 +400,7 @@
             font-weight: bold;
             flex: 1;
             padding: 2px 5px;
+            height: 20px;
         }
 
         .subheading-input:focus {
@@ -430,6 +438,9 @@
             display: flex;
             gap: 5px;
             margin: 10px 0;
+            height: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
         }
 
         .collapsible-content {
@@ -440,6 +451,21 @@
 
         .collapsible-content.collapsed {
             max-height: 0;
+        }
+
+        .complete-checkbox {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .bookmark-flag {
+            position: absolute;
+            top: 12px;
+            right: 70px;
+            color: #ffc107;
+            cursor: pointer;
         }
 
         @media (max-width: 768px) {
@@ -491,8 +517,8 @@
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <button class="sidebar-toggle" onclick="toggleSidebar()">
+    <div class="sidebar" onclick="toggleSidebar()">
+        <button class="sidebar-toggle">
             <i class="fas fa-bars"></i>
         </button>
         <div class="sidebar-item active" onclick="openTab('tasks')">
@@ -537,16 +563,6 @@
                 <div class="input-group">
                     <input type="text" id="taskTitle" placeholder="Task title">
                 </div>
-                <div class="input-group">
-                    <label for="taskCategory">Category</label>
-                    <select id="taskCategory">
-                        <option value="">Select Category</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <input type="text" id="newCategory" placeholder="New category">
-                </div>
-                <button onclick="addCategory()">Add Category</button>
                 <div class="input-group">
                     <label for="taskStart">Start Date</label>
                     <input type="date" id="taskStart">
@@ -654,7 +670,6 @@
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
         let contacts = JSON.parse(localStorage.getItem('contacts')) || [];
         let processes = JSON.parse(localStorage.getItem('processes')) || [];
-        let categories = JSON.parse(localStorage.getItem('categories')) || ['Meeting', 'Development', 'Research', 'Administration'];
         let selectedPriority = 1;
         let taskSubheadings = JSON.parse(localStorage.getItem('taskSubheadings')) || ['General'];
         let contactSubheadings = JSON.parse(localStorage.getItem('contactSubheadings')) || ['General'];
@@ -764,14 +779,12 @@
                 tasks = [];
                 contacts = [];
                 processes = [];
-                categories = ['Meeting', 'Development', 'Research', 'Administration'];
                 taskSubheadings = ['General'];
                 contactSubheadings = ['General'];
                 processSubheadings = ['General'];
                 collapsedSubheadings = {};
                 
                 saveAllData();
-                initCategories();
                 renderTasks();
                 renderContacts();
                 renderProcesses();
@@ -785,7 +798,6 @@
             localStorage.setItem('tasks', JSON.stringify(tasks));
             localStorage.setItem('contacts', JSON.stringify(contacts));
             localStorage.setItem('processes', JSON.stringify(processes));
-            localStorage.setItem('categories', JSON.stringify(categories));
             localStorage.setItem('taskSubheadings', JSON.stringify(taskSubheadings));
             localStorage.setItem('contactSubheadings', JSON.stringify(contactSubheadings));
             localStorage.setItem('processSubheadings', JSON.stringify(processSubheadings));
@@ -1040,23 +1052,6 @@
             }
         }
 
-        // Categories
-        function initCategories() {
-            const select = document.getElementById('taskCategory');
-            select.innerHTML = '<option value="">Select Category</option>' + 
-                categories.map(cat => `<option>${cat}</option>`).join('');
-        }
-
-        function addCategory() {
-            const newCat = document.getElementById('newCategory').value.trim();
-            if (newCat && !categories.includes(newCat)) {
-                categories.push(newCat);
-                localStorage.setItem('categories', JSON.stringify(categories));
-                initCategories();
-                document.getElementById('newCategory').value = '';
-            }
-        }
-
         // Star Rating System
         function setupStarRating() {
             const stars = document.querySelectorAll('#priorityStars i');
@@ -1086,12 +1081,12 @@
             const task = {
                 id: Date.now(),
                 title: document.getElementById('taskTitle').value.trim(),
-                category: document.getElementById('taskCategory').value,
                 start: document.getElementById('taskStart').value,
                 due: document.getElementById('taskDue').value,
                 priority: priorityText,
                 priorityValue: selectedPriority,
                 notes: document.getElementById('taskNotes').value,
+                currentStep: '',
                 completed: false,
                 created: new Date().toISOString(),
                 subheading: taskSubheadings[0]
@@ -1136,7 +1131,6 @@
                             <div class="timeline-progress" style="width: ${progress.percentage}%; background-color: ${progressColor}"></div>
                         </div>
                         <div class="timeline-dates">
-                            <span>${formatDate(task.start)}</span>
                             <span>${formatDate(task.due)}</span>
                         </div>
                     </div>
@@ -1156,23 +1150,21 @@
             ).join('');
 
             taskElement.innerHTML = `
-                <div class="task-title">${task.title}</div>
                 <div class="task-header">
-                    <input type="checkbox" ${task.completed ? 'checked' : ''} 
-                           onchange="toggleTask(${task.id})">
-                    <span contenteditable="true" 
+                    <span class="task-title" contenteditable="true" 
                           oninput="updateTaskField(${task.id}, 'title', this.innerText)">
                         ${task.title}
                     </span>
                 </div>
+                <div class="complete-checkbox">
+                    <input type="checkbox" id="complete-${task.id}" ${task.completed ? 'checked' : ''} 
+                           onchange="toggleTask(${task.id})">
+                    <label for="complete-${task.id}">Complete</label>
+                </div>
+                <input type="text" class="current-step" placeholder="Current step..." 
+                       value="${task.currentStep || ''}" 
+                       oninput="updateTaskField(${task.id}, 'currentStep', this.value)">
                 <div class="task-meta">
-                    <div class="task-meta-item">
-                        <span>Category:</span>
-                        <select onchange="updateTaskField(${task.id}, 'category', this.value)">
-                            <option value="">No Category</option>
-                            ${categories.map(opt => `<option ${task.category === opt ? 'selected' : ''}>${opt}</option>`).join('')}
-                        </select>
-                    </div>
                     <div class="task-meta-item">
                         <span>Priority:</span>
                         <div class="star-rating">
@@ -1288,6 +1280,7 @@
                 phone: document.getElementById('contactPhone').value.trim(),
                 department: document.getElementById('contactDepartment').value.trim(),
                 notes: document.getElementById('contactNotes').value.trim(),
+                flagged: false,
                 subheading: contactSubheadings[0]
             };
 
@@ -1320,6 +1313,8 @@
                           oninput="updateContactField(${contact.id}, 'name', this.innerText)">
                         ${contact.name}
                     </span>
+                    <i class="fas fa-bookmark bookmark-flag ${contact.flagged ? 'active' : ''}" 
+                       onclick="toggleContactFlag(${contact.id})"></i>
                 </div>
                 <div class="contact-details">
                     <div>Email: ${contact.email || 'Not specified'}</div>
@@ -1347,6 +1342,15 @@
                 </div>
             `;
             return contactElement;
+        }
+
+        function toggleContactFlag(id) {
+            const contact = contacts.find(c => c.id === id);
+            if (contact) {
+                contact.flagged = !contact.flagged;
+                saveContacts();
+                renderContacts();
+            }
         }
 
         function moveContact(id, direction) {
@@ -1523,7 +1527,7 @@
             const filtered = tasks.filter(t => 
                 t.title.toLowerCase().includes(searchTerm) ||
                 (t.notes && t.notes.toLowerCase().includes(searchTerm)) ||
-                (t.category && t.category.toLowerCase().includes(searchTerm))
+                (t.currentStep && t.currentStep.toLowerCase().includes(searchTerm))
             );
             
             const tasksList = document.getElementById('tasksList');
@@ -1679,7 +1683,6 @@
 
         // Initialization
         window.onload = () => {
-            initCategories();
             setupStarRating();
             renderTasks();
             renderContacts();
