@@ -497,6 +497,7 @@
             <button class="new-item-btn" onclick="toggleInputs('tasks')">
                 New Task
             </button>
+            <input type="text" class="search-bar" id="taskSearch" placeholder="Search tasks..." oninput="searchTasks()">
             <div class="input-section">
                 <div class="input-group">
                     <input type="text" id="taskTitle" placeholder="Task title">
@@ -537,6 +538,8 @@
             </div>
 
             <div class="task-list" id="tasksList">
+                <h3 class="current-header">Current Tasks</h3>
+                <div id="currentList"></div>
                 <h3 class="completed-header">Completed Tasks</h3>
                 <div id="doneList"></div>
             </div>
@@ -742,7 +745,12 @@
             const subheadings = type === 'task' ? taskSubheadings : 
                               type === 'contact' ? contactSubheadings : processSubheadings;
             
-            listContainer.innerHTML = type === 'task' ? '<h3 class="completed-header">Completed Tasks</h3><div id="doneList"></div>' : '';
+            // Clear the containers
+            if (type === 'task') {
+                listContainer.innerHTML = '<h3 class="current-header">Current Tasks</h3><div id="currentList"></div><h3 class="completed-header">Completed Tasks</h3><div id="doneList"></div>';
+            } else {
+                listContainer.innerHTML = '';
+            }
             
             subheadings.forEach((subheading, index) => {
                 // Render items for this subheading in the list container
@@ -753,7 +761,7 @@
         function renderItemsForSubheading(type, subheading, container, index) {
             let items = [];
             if (type === 'task') {
-                items = tasks.filter(t => !t.completed && t.subheading === subheading);
+                items = tasks.filter(t => t.subheading === subheading);
             } else if (type === 'contact') {
                 items = contacts.filter(c => c.subheading === subheading);
             } else if (type === 'process') {
@@ -794,29 +802,41 @@
             subheadingElement.appendChild(input);
             subheadingElement.appendChild(controls);
             
-            container.appendChild(subheadingElement);
-            
-            // Add items
-            items.forEach(item => {
-                const element = type === 'task' ? createTaskElement(item) : 
-                              type === 'contact' ? createContactElement(item) : 
-                              createProcessElement(item);
-                container.appendChild(element);
-            });
-            
+            // For tasks, we need to add to either current or completed list
             if (type === 'task') {
-                const completedTasks = tasks.filter(t => t.completed && t.subheading === subheading);
-                if (completedTasks.length > 0) {
+                const currentItems = items.filter(t => !t.completed);
+                const completedItems = items.filter(t => t.completed);
+                
+                if (currentItems.length > 0) {
+                    const currentContainer = document.getElementById('currentList');
+                    currentContainer.appendChild(subheadingElement.cloneNode(true));
+                    
+                    currentItems.forEach(task => {
+                        const taskElement = createTaskElement(task);
+                        document.getElementById('currentList').appendChild(taskElement);
+                    });
+                }
+                
+                if (completedItems.length > 0) {
                     const completedHeader = document.createElement('div');
                     completedHeader.className = 'subheading';
                     completedHeader.textContent = `${subheading} - Completed`;
                     document.getElementById('doneList').appendChild(completedHeader);
                     
-                    completedTasks.forEach(task => {
+                    completedItems.forEach(task => {
                         const taskElement = createTaskElement(task);
                         document.getElementById('doneList').appendChild(taskElement);
                     });
                 }
+            } else {
+                // For contacts and processes
+                container.appendChild(subheadingElement);
+                
+                // Add items
+                items.forEach(item => {
+                    const element = type === 'contact' ? createContactElement(item) : createProcessElement(item);
+                    container.appendChild(element);
+                });
             }
         }
 
@@ -1377,6 +1397,70 @@
         function toggleNotes(header) {
             const content = header.nextElementSibling;
             content.classList.toggle('expanded');
+        }
+
+        function searchTasks() {
+            const searchTerm = document.getElementById('taskSearch').value.toLowerCase();
+            const filtered = tasks.filter(t => 
+                t.title.toLowerCase().includes(searchTerm) ||
+                (t.notes && t.notes.toLowerCase().includes(searchTerm)) ||
+                (t.category && t.category.toLowerCase().includes(searchTerm))
+            );
+            
+            const tasksList = document.getElementById('tasksList');
+            tasksList.innerHTML = '<h3 class="current-header">Current Tasks</h3><div id="currentList"></div><h3 class="completed-header">Completed Tasks</h3><div id="doneList"></div>';
+            
+            // Group by subheading
+            const currentGrouped = {};
+            const completedGrouped = {};
+            
+            filtered.forEach(task => {
+                if (!task.completed) {
+                    if (!currentGrouped[task.subheading]) {
+                        currentGrouped[task.subheading] = [];
+                    }
+                    currentGrouped[task.subheading].push(task);
+                } else {
+                    if (!completedGrouped[task.subheading]) {
+                        completedGrouped[task.subheading] = [];
+                    }
+                    completedGrouped[task.subheading].push(task);
+                }
+            });
+            
+            // Render current tasks
+            for (const [subheading, items] of Object.entries(currentGrouped)) {
+                const subheadingElement = document.createElement('div');
+                subheadingElement.className = 'subheading';
+                
+                const input = document.createElement('input');
+                input.className = 'subheading-input';
+                input.value = subheading;
+                input.placeholder = 'Subheading name';
+                const index = taskSubheadings.indexOf(subheading);
+                input.onchange = () => updateSubheading('task', index, input.value);
+                
+                subheadingElement.appendChild(input);
+                document.getElementById('currentList').appendChild(subheadingElement);
+                
+                items.forEach(task => {
+                    const taskElement = createTaskElement(task);
+                    document.getElementById('currentList').appendChild(taskElement);
+                });
+            }
+            
+            // Render completed tasks
+            for (const [subheading, items] of Object.entries(completedGrouped)) {
+                const subheadingElement = document.createElement('div');
+                subheadingElement.className = 'subheading';
+                subheadingElement.textContent = `${subheading} - Completed`;
+                document.getElementById('doneList').appendChild(subheadingElement);
+                
+                items.forEach(task => {
+                    const taskElement = createTaskElement(task);
+                    document.getElementById('doneList').appendChild(taskElement);
+                });
+            }
         }
 
         function searchContacts() {
