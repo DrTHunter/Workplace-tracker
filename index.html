@@ -3,47 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Work Task Tracker</title>
+    <title>Work Organizer</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background-color: #f0f2f5;
+            background-color: #f5f7fa;
             padding: 20px;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             background-color: white;
-            padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
 
-        h1 {
-            color: #1a73e8;
-            margin-bottom: 20px;
-            text-align: center;
+        .tabs {
+            display: flex;
+            background-color: #1a73e8;
+        }
+
+        .tab-button {
+            padding: 15px 30px;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .tab-button.active {
+            background-color: #1557b0;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         .input-section {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
         }
 
-        #taskInput {
-            flex: 1;
+        input, select, textarea {
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         button {
@@ -57,136 +78,360 @@
         }
 
         button:hover {
-            background-color: #1557b0;
+            filter: brightness(0.9);
         }
 
-        .task-list {
-            list-style: none;
+        .lists-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
 
-        .task-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
+        .task-list, .contacts-table {
             background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+        }
+
+        .task-item, .contact-item {
+            padding: 15px;
+            background-color: white;
             margin-bottom: 10px;
             border-radius: 5px;
-            transition: transform 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
-        .task-item:hover {
-            transform: translateX(5px);
-        }
-
-        .task-text {
-            flex: 1;
-            margin: 0 15px;
-        }
+        .priority-high { border-left: 4px solid #dc3545; }
+        .priority-medium { border-left: 4px solid #ffc107; }
+        .priority-low { border-left: 4px solid #28a745; }
 
         .completed {
-            text-decoration: line-through;
             opacity: 0.7;
+            background-color: #f8f9fa;
+        }
+
+        .editable {
+            border-bottom: 1px dashed #666;
+            cursor: text;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
         }
 
         .delete-btn {
             background-color: #dc3545;
         }
-
-        .delete-btn:hover {
-            background-color: #bb2d3b;
-        }
-
-        .timestamp {
-            font-size: 0.8em;
-            color: #666;
-            margin-left: 10px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Work Task Tracker</h1>
-        <div class="input-section">
-            <input type="text" id="taskInput" placeholder="Enter a new task...">
-            <button onclick="addTask()">Add Task</button>
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab('tasks')">Tasks</button>
+            <button class="tab-button" onclick="openTab('contacts')">Contacts</button>
         </div>
-        <ul class="task-list" id="taskList"></ul>
+
+        <!-- Tasks Tab -->
+        <div id="tasks" class="tab-content active">
+            <div class="input-section">
+                <input type="text" id="taskTitle" placeholder="Task title">
+                <select id="taskCategory">
+                    <option value="">Select Category</option>
+                    <option>Meeting</option>
+                    <option>Development</option>
+                    <option>Research</option>
+                    <option>Administration</option>
+                </select>
+                <input type="date" id="taskDue">
+                <select id="taskPriority">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+                <textarea id="taskNotes" placeholder="Notes..."></textarea>
+                <button onclick="addTask()">Add Task</button>
+            </div>
+
+            <div class="lists-container">
+                <div class="active-tasks">
+                    <h3>Active Tasks</h3>
+                    <div class="task-list" id="activeList"></div>
+                </div>
+                <div class="completed-tasks">
+                    <h3>Completed Tasks</h3>
+                    <div class="task-list" id="doneList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contacts Tab -->
+        <div id="contacts" class="tab-content">
+            <div class="input-section">
+                <input type="text" id="contactName" placeholder="Name">
+                <input type="email" id="contactEmail" placeholder="Email">
+                <input type="tel" id="contactPhone" placeholder="Phone">
+                <input type="text" id="contactDepartment" placeholder="Department">
+                <textarea id="contactNotes" placeholder="Notes..."></textarea>
+                <button onclick="addContact()">Add Contact</button>
+            </div>
+
+            <div class="filter-section">
+                <select id="sortDepartment" onchange="sortContacts()">
+                    <option value="">All Departments</option>
+                </select>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Department</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="contactsList"></tbody>
+            </table>
+        </div>
     </div>
 
     <script>
-        // Load tasks from localStorage when page loads
-        document.addEventListener('DOMContentLoaded', loadTasks);
-
-        function addTask() {
-            const taskInput = document.getElementById('taskInput');
-            const taskText = taskInput.value.trim();
-
-            if (taskText === '') return;
-
-            const task = {
-                id: Date.now(),
-                text: taskText,
-                completed: false,
-                timestamp: new Date().toLocaleString()
-            };
-
-            addTaskToList(task);
-            saveTaskToStorage(task);
-            taskInput.value = '';
+        // Tab Navigation
+        function openTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
         }
 
-        function addTaskToList(task) {
-            const taskList = document.getElementById('taskList');
+        // Task Management
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        let contacts = JSON.parse(localStorage.getItem('contacts')) || [];
+        let departments = new Set();
+
+        function addTask() {
+            const task = {
+                id: Date.now(),
+                title: document.getElementById('taskTitle').value.trim(),
+                category: document.getElementById('taskCategory').value,
+                due: document.getElementById('taskDue').value,
+                priority: document.getElementById('taskPriority').value,
+                notes: document.getElementById('taskNotes').value,
+                completed: false,
+                created: new Date().toISOString()
+            };
+
+            if (!task.title) return;
+
+            tasks.push(task);
+            saveTasks();
+            renderTasks();
+            clearTaskForm();
+        }
+
+        function renderTasks() {
+            const activeList = document.getElementById('activeList');
+            const doneList = document.getElementById('doneList');
             
-            const li = document.createElement('li');
-            li.className = 'task-item';
-            li.dataset.id = task.id;
+            activeList.innerHTML = '';
+            doneList.innerHTML = '';
 
-            li.innerHTML = `
-                <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})">
-                <span class="task-text ${task.completed ? 'completed' : ''}">${task.text}</span>
-                <span class="timestamp">${task.timestamp}</span>
-                <button class="delete-btn" onclick="deleteTask(${task.id})">Delete</button>
-            `;
+            tasks.forEach(task => {
+                const taskElement = document.createElement('div');
+                taskElement.className = `task-item priority-${task.priority} ${task.completed ? 'completed' : ''}`;
+                taskElement.innerHTML = `
+                    <div class="task-header">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                               onchange="toggleTask(${task.id})">
+                        <span class="editable" contenteditable="true" 
+                              oninput="updateTaskField(${task.id}, 'title', this.innerText)">
+                            ${task.title}
+                        </span>
+                    </div>
+                    <div class="task-meta">
+                        <span>Category: 
+                            <select class="editable" onchange="updateTaskField(${task.id}, 'category', this.value)">
+                                ${['', 'Meeting', 'Development', 'Research', 'Administration']
+                                    .map(opt => `<option ${task.category === opt ? 'selected' : ''}>${opt}</option>`)
+                                    .join('')}
+                            </select>
+                        </span>
+                        <span>Due: 
+                            <input type="date" class="editable" value="${task.due}" 
+                                   onchange="updateTaskField(${task.id}, 'due', this.value)">
+                        </span>
+                        <span>Priority: 
+                            <select class="editable" onchange="updateTaskField(${task.id}, 'priority', this.value)">
+                                <option value="low" ${task.priority === 'low' ? 'selected' : ''}>Low</option>
+                                <option value="medium" ${task.priority === 'medium' ? 'selected' : ''}>Medium</option>
+                                <option value="high" ${task.priority === 'high' ? 'selected' : ''}>High</option>
+                            </select>
+                        </span>
+                    </div>
+                    <div class="task-notes">
+                        <textarea class="editable" oninput="updateTaskField(${task.id}, 'notes', this.value)"
+                                  style="width:100%; margin-top:10px">${task.notes}</textarea>
+                    </div>
+                    <button class="delete-btn" onclick="deleteTask(${task.id})">Delete</button>
+                `;
 
-            taskList.appendChild(li);
+                (task.completed ? doneList : activeList).appendChild(taskElement);
+            });
         }
 
         function toggleTask(id) {
-            const tasks = getTasksFromStorage();
-            const task = tasks.find(task => task.id === id);
+            const task = tasks.find(t => t.id === id);
             task.completed = !task.completed;
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            updateTaskDisplay(id);
+            saveTasks();
+            renderTasks();
+        }
+
+        function updateTaskField(id, field, value) {
+            const task = tasks.find(t => t.id === id);
+            task[field] = value;
+            saveTasks();
         }
 
         function deleteTask(id) {
-            const tasks = getTasksFromStorage().filter(task => task.id !== id);
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+            renderTasks();
+        }
+
+        function clearTaskForm() {
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskCategory').value = '';
+            document.getElementById('taskDue').value = '';
+            document.getElementById('taskPriority').value = 'low';
+            document.getElementById('taskNotes').value = '';
+        }
+
+        // Contact Management
+        function addContact() {
+            const contact = {
+                id: Date.now(),
+                name: document.getElementById('contactName').value.trim(),
+                email: document.getElementById('contactEmail').value.trim(),
+                phone: document.getElementById('contactPhone').value.trim(),
+                department: document.getElementById('contactDepartment').value.trim(),
+                notes: document.getElementById('contactNotes').value.trim()
+            };
+
+            if (!contact.name) return;
+
+            contacts.push(contact);
+            saveContacts();
+            renderContacts();
+            clearContactForm();
+            updateDepartmentFilter();
+        }
+
+        function renderContacts() {
+            const contactsList = document.getElementById('contactsList');
+            contactsList.innerHTML = '';
+
+            contacts.forEach(contact => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td contenteditable="true" oninput="updateContactField(${contact.id}, 'name', this.innerText)">
+                        ${contact.name}
+                    </td>
+                    <td contenteditable="true" oninput="updateContactField(${contact.id}, 'email', this.innerText)">
+                        ${contact.email}
+                    </td>
+                    <td contenteditable="true" oninput="updateContactField(${contact.id}, 'phone', this.innerText)">
+                        ${contact.phone}
+                    </td>
+                    <td contenteditable="true" oninput="updateContactField(${contact.id}, 'department', this.innerText)">
+                        ${contact.department}
+                    </td>
+                    <td contenteditable="true" oninput="updateContactField(${contact.id}, 'notes', this.innerText)">
+                        ${contact.notes}
+                    </td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteContact(${contact.id})">Delete</button>
+                    </td>
+                `;
+                contactsList.appendChild(row);
+            });
+        }
+
+        function updateContactField(id, field, value) {
+            const contact = contacts.find(c => c.id === id);
+            contact[field] = value;
+            saveContacts();
+        }
+
+        function deleteContact(id) {
+            contacts = contacts.filter(c => c.id !== id);
+            saveContacts();
+            renderContacts();
+            updateDepartmentFilter();
+        }
+
+        function sortContacts() {
+            const department = document.getElementById('sortDepartment').value;
+            const filtered = department ? 
+                contacts.filter(c => c.department === department) : 
+                [...contacts];
+            
+            contactsList.innerHTML = '';
+            filtered.forEach(contact => {
+                // Re-use render logic or create separate function
+            });
+        }
+
+        function updateDepartmentFilter() {
+            const select = document.getElementById('sortDepartment');
+            departments = new Set(contacts.map(c => c.department).filter(Boolean));
+            
+            select.innerHTML = `
+                <option value="">All Departments</option>
+                ${[...departments].map(dept => `<option>${dept}</option>`).join('')}
+            `;
+        }
+
+        function clearContactForm() {
+            document.getElementById('contactName').value = '';
+            document.getElementById('contactEmail').value = '';
+            document.getElementById('contactPhone').value = '';
+            document.getElementById('contactDepartment').value = '';
+            document.getElementById('contactNotes').value = '';
+        }
+
+        // Storage Functions
+        function saveTasks() {
             localStorage.setItem('tasks', JSON.stringify(tasks));
-            document.querySelector(`[data-id="${id}"]`).remove();
         }
 
-        function updateTaskDisplay(id) {
-            const taskElement = document.querySelector(`[data-id="${id}"]`);
-            const taskText = taskElement.querySelector('.task-text');
-            const checkbox = taskElement.querySelector('input[type="checkbox"]');
-            taskText.classList.toggle('completed', checkbox.checked);
+        function saveContacts() {
+            localStorage.setItem('contacts', JSON.stringify(contacts));
         }
 
-        function saveTaskToStorage(task) {
-            const tasks = getTasksFromStorage();
-            tasks.push(task);
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-        }
-
-        function getTasksFromStorage() {
-            return JSON.parse(localStorage.getItem('tasks') || '[]');
-        }
-
-        function loadTasks() {
-            const tasks = getTasksFromStorage();
-            tasks.forEach(task => addTaskToList(task));
-        }
+        // Initial Load
+        window.onload = () => {
+            renderTasks();
+            renderContacts();
+            updateDepartmentFilter();
+        };
     </script>
 </body>
 </html>
