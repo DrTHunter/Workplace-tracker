@@ -262,13 +262,16 @@
 
         .current-step {
             margin-top: 5px;
-            width: 100%;
-            min-height: 60px;
-            padding: 8px;
+            width: 50%;
+            min-height: 20px;
+            padding: 5px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            resize: vertical;
+            resize: none;
             font-size: 13px;
+            line-height: 1.4;
+            overflow: hidden;
+            height: auto;
         }
 
         .notes-header {
@@ -430,23 +433,31 @@
 
         .contact-details {
             margin: 5px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .contact-details div {
-            margin: 5px 0;
-            padding: 5px;
+            margin: 2px 0;
+            padding: 2px;
+            display: flex;
+            align-items: center;
         }
 
         .contact-details span {
             display: inline-block;
-            min-width: 80px;
+            min-width: 60px;
             color: #555;
+            font-size: 13px;
         }
 
         .contact-details .editable {
             border: none;
             padding: 2px 5px;
             border-radius: 3px;
+            font-size: 13px;
+            min-width: 150px;
         }
 
         .contact-details .editable:focus {
@@ -524,6 +535,10 @@
         .waiting-on-input {
             margin-left: 10px;
             width: 200px;
+            padding: 5px;
+            font-size: 13px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
 
         .process-header {
@@ -540,51 +555,6 @@
             padding: 5px;
             border: none;
             border-radius: 4px;
-        }
-
-        .department-container {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 15px;
-        }
-
-        .department-header {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            padding: 8px;
-            background-color: #f0f0f0;
-            border-radius: 4px;
-            margin-bottom: 5px;
-        }
-
-        .department-header i {
-            margin-right: 8px;
-            transition: transform 0.2s;
-        }
-
-        .department-header.collapsed i {
-            transform: rotate(-90deg);
-        }
-
-        .department-content {
-            padding-left: 20px;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-
-        .department-content.collapsed {
-            max-height: 0;
-        }
-
-        .department-subitem {
-            padding: 5px 10px;
-            cursor: pointer;
-            margin-left: 15px;
-        }
-
-        .department-subitem:hover {
-            background-color: #f0f0f0;
         }
 
         @media (max-width: 768px) {
@@ -646,17 +616,7 @@
             <span>Tasks</span>
         </div>
         <div class="sidebar-content" id="tasks-sidebar">
-            <div class="department-container">
-                <div class="department-header" onclick="toggleDepartment('tasks')">
-                    <i class="fas fa-chevron-down"></i>
-                    <span>Department</span>
-                </div>
-                <div class="department-content">
-                    <div class="department-subitem" onclick="scrollToSection('tasks')">Tasks</div>
-                    <div class="department-subitem" onclick="scrollToSection('contacts')">Contacts</div>
-                    <div class="department-subitem" onclick="scrollToSection('processes')">Processes</div>
-                </div>
-            </div>
+            <!-- Tasks will be listed here when expanded -->
         </div>
         
         <div class="sidebar-item" onclick="openTab('contacts')">
@@ -752,9 +712,6 @@
                 <div class="input-group">
                     <input type="tel" id="contactPhone" placeholder="Phone">
                 </div>
-                <div class="input-group">
-                    <input type="text" id="contactDepartment" placeholder="Department">
-                </div>
                 <button onclick="addContact()">Add Contact</button>
                 
                 <div class="notes-container">
@@ -811,7 +768,6 @@
         let processSubheadings = JSON.parse(localStorage.getItem('processSubheadings')) || ['General'];
         let activeSidebar = 'tasks';
         let collapsedSubheadings = JSON.parse(localStorage.getItem('collapsedSubheadings')) || {};
-        let departmentCollapsed = JSON.parse(localStorage.getItem('departmentCollapsed')) || {};
 
         // Tab Navigation
         function openTab(tabName) {
@@ -849,18 +805,6 @@
             }
         }
 
-        // Toggle department section
-        function toggleDepartment(type) {
-            const header = document.querySelector(`#${type}-sidebar .department-header`);
-            const content = document.querySelector(`#${type}-sidebar .department-content`);
-            
-            header.classList.toggle('collapsed');
-            content.classList.toggle('collapsed');
-            
-            departmentCollapsed[type] = header.classList.contains('collapsed');
-            localStorage.setItem('departmentCollapsed', JSON.stringify(departmentCollapsed));
-        }
-
         // Scroll to section
         function scrollToSection(section) {
             const element = document.getElementById(section);
@@ -874,47 +818,89 @@
             const sidebar = document.getElementById(`${tabName}-sidebar`);
             if (!sidebar) return;
             
-            // Clear existing content except department section
-            const departmentSection = sidebar.querySelector('.department-container');
+            // Clear existing content
             sidebar.innerHTML = '';
-            if (departmentSection) {
-                sidebar.appendChild(departmentSection);
-            }
             
             if (tabName === 'tasks') {
-                const activeTasks = tasks.filter(t => !t.completed);
-                activeTasks.forEach(task => {
-                    const item = document.createElement('div');
-                    item.className = 'sidebar-content-item';
-                    item.textContent = task.title;
-                    item.onclick = () => scrollToItem('task', task.id);
-                    sidebar.appendChild(item);
+                // Group tasks by subheading
+                const grouped = {};
+                tasks.filter(t => !t.completed).forEach(task => {
+                    if (!grouped[task.subheading]) {
+                        grouped[task.subheading] = [];
+                    }
+                    grouped[task.subheading].push(task);
                 });
+                
+                // Add subheadings and items
+                for (const [subheading, items] of Object.entries(grouped)) {
+                    const subheadingElement = document.createElement('div');
+                    subheadingElement.className = 'sidebar-content-item';
+                    subheadingElement.style.fontWeight = 'bold';
+                    subheadingElement.textContent = subheading;
+                    sidebar.appendChild(subheadingElement);
+                    
+                    items.forEach(task => {
+                        const item = document.createElement('div');
+                        item.className = 'sidebar-content-item';
+                        item.textContent = task.title;
+                        item.style.paddingLeft = '15px';
+                        item.onclick = () => scrollToItem('task', task.id);
+                        sidebar.appendChild(item);
+                    });
+                }
             } else if (tabName === 'contacts') {
+                // Group contacts by subheading
+                const grouped = {};
                 contacts.forEach(contact => {
-                    const item = document.createElement('div');
-                    item.className = 'sidebar-content-item';
-                    item.textContent = contact.name;
-                    item.onclick = () => scrollToItem('contact', contact.id);
-                    sidebar.appendChild(item);
+                    if (!grouped[contact.subheading]) {
+                        grouped[contact.subheading] = [];
+                    }
+                    grouped[contact.subheading].push(contact);
                 });
+                
+                // Add subheadings and items
+                for (const [subheading, items] of Object.entries(grouped)) {
+                    const subheadingElement = document.createElement('div');
+                    subheadingElement.className = 'sidebar-content-item';
+                    subheadingElement.style.fontWeight = 'bold';
+                    subheadingElement.textContent = subheading;
+                    sidebar.appendChild(subheadingElement);
+                    
+                    items.forEach(contact => {
+                        const item = document.createElement('div');
+                        item.className = 'sidebar-content-item';
+                        item.textContent = contact.name;
+                        item.style.paddingLeft = '15px';
+                        item.onclick = () => scrollToItem('contact', contact.id);
+                        sidebar.appendChild(item);
+                    });
+                }
             } else if (tabName === 'processes') {
+                // Group processes by subheading
+                const grouped = {};
                 processes.forEach(process => {
-                    const item = document.createElement('div');
-                    item.className = 'sidebar-content-item';
-                    item.textContent = process.title;
-                    item.onclick = () => scrollToItem('process', process.id);
-                    sidebar.appendChild(item);
+                    if (!grouped[process.subheading]) {
+                        grouped[process.subheading] = [];
+                    }
+                    grouped[process.subheading].push(process);
                 });
-            }
-            
-            // Restore department collapsed state
-            if (departmentCollapsed[tabName]) {
-                const header = sidebar.querySelector('.department-header');
-                const content = sidebar.querySelector('.department-content');
-                if (header && content) {
-                    header.classList.add('collapsed');
-                    content.classList.add('collapsed');
+                
+                // Add subheadings and items
+                for (const [subheading, items] of Object.entries(grouped)) {
+                    const subheadingElement = document.createElement('div');
+                    subheadingElement.className = 'sidebar-content-item';
+                    subheadingElement.style.fontWeight = 'bold';
+                    subheadingElement.textContent = subheading;
+                    sidebar.appendChild(subheadingElement);
+                    
+                    items.forEach(process => {
+                        const item = document.createElement('div');
+                        item.className = 'sidebar-content-item';
+                        item.textContent = process.title;
+                        item.style.paddingLeft = '15px';
+                        item.onclick = () => scrollToItem('process', process.id);
+                        sidebar.appendChild(item);
+                    });
                 }
             }
         }
@@ -955,7 +941,6 @@
                 contactSubheadings = ['General'];
                 processSubheadings = ['General'];
                 collapsedSubheadings = {};
-                departmentCollapsed = {};
                 
                 saveAllData();
                 renderTasks();
@@ -975,7 +960,6 @@
             localStorage.setItem('contactSubheadings', JSON.stringify(contactSubheadings));
             localStorage.setItem('processSubheadings', JSON.stringify(processSubheadings));
             localStorage.setItem('collapsedSubheadings', JSON.stringify(collapsedSubheadings));
-            localStorage.setItem('departmentCollapsed', JSON.stringify(departmentCollapsed));
         }
 
         // Subheading functions
@@ -1492,7 +1476,6 @@
                 jobTitle: document.getElementById('contactJobTitle').value.trim(),
                 email: document.getElementById('contactEmail').value.trim(),
                 phone: document.getElementById('contactPhone').value.trim(),
-                department: document.getElementById('contactDepartment').value.trim(),
                 notes: document.getElementById('contactNotes').value.trim(),
                 flagged: false,
                 waitingOn: '',
@@ -1541,31 +1524,24 @@
                 </div>
                 <div class="contact-details">
                     <div>
-                        <span>Job Title: </span>
+                        <span>Title:</span>
                         <span class="editable" contenteditable="true" 
                               oninput="updateContactField(${contact.id}, 'jobTitle', this.innerText)">
                             ${contact.jobTitle || 'Not specified'}
                         </span>
                     </div>
                     <div>
-                        <span>Email: </span>
+                        <span>Email:</span>
                         <span class="editable" contenteditable="true" 
                               oninput="updateContactField(${contact.id}, 'email', this.innerText)">
                             ${contact.email || 'Not specified'}
                         </span>
                     </div>
                     <div>
-                        <span>Phone: </span>
+                        <span>Phone:</span>
                         <span class="editable" contenteditable="true" 
                               oninput="updateContactField(${contact.id}, 'phone', this.innerText)">
                             ${contact.phone || 'Not specified'}
-                        </span>
-                    </div>
-                    <div>
-                        <span>Department: </span>
-                        <span class="editable" contenteditable="true" 
-                              oninput="updateContactField(${contact.id}, 'department', this.innerText)">
-                            ${contact.department || 'Not specified'}
                         </span>
                     </div>
                 </div>
@@ -1919,7 +1895,6 @@
             document.getElementById('contactJobTitle').value = '';
             document.getElementById('contactEmail').value = '';
             document.getElementById('contactPhone').value = '';
-            document.getElementById('contactDepartment').value = '';
             document.getElementById('contactNotes').value = '';
         }
 
