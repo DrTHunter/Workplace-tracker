@@ -145,7 +145,7 @@
 
         .contact-notes, .process-content {
             width: 100%;
-            min-height: 80px;
+            min-height: 120px;
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -158,12 +158,13 @@
             position: absolute;
             top: 8px;
             right: 8px;
+            padding: 6px 12px;
         }
 
         .move-buttons {
             position: absolute;
-            top: 8px;
-            right: 80px;
+            top: 40px;
+            right: 8px;
             display: flex;
             gap: 5px;
         }
@@ -203,10 +204,6 @@
             
             button {
                 padding: 6px 12px;
-            }
-            
-            .move-buttons {
-                right: 60px;
             }
         }
     </style>
@@ -275,6 +272,12 @@
     </div>
 
     <script>
+        // Data Management
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        let contacts = JSON.parse(localStorage.getItem('contacts')) || [];
+        let processes = JSON.parse(localStorage.getItem('processes')) || [];
+        let categories = JSON.parse(localStorage.getItem('categories')) || ['Meeting', 'Development', 'Research', 'Administration'];
+
         // Tab Navigation
         function openTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -283,16 +286,11 @@
             event.currentTarget.classList.add('active');
         }
 
-        // Data Management
-        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-        let contacts = JSON.parse(localStorage.getItem('contacts')) || [];
-        let processes = JSON.parse(localStorage.getItem('processes')) || [];
-        let categories = JSON.parse(localStorage.getItem('categories')) || ['Meeting', 'Development', 'Research', 'Administration'];
-        
-        // Initialize Categories
+        // Categories
         function initCategories() {
             const select = document.getElementById('taskCategory');
-            select.innerHTML = categories.map(cat => `<option>${cat}</option>`).join('');
+            select.innerHTML = '<option value="">Select Category</option>' + 
+                categories.map(cat => `<option>${cat}</option>`).join('');
         }
 
         function addCategory() {
@@ -305,7 +303,7 @@
             }
         }
 
-        // Task Management
+        // Task Functions
         function addTask() {
             const task = {
                 id: Date.now(),
@@ -340,7 +338,7 @@
             });
         }
 
-        function createTaskElement(task, index) {
+        function createTaskElement(task) {
             const taskElement = document.createElement('div');
             taskElement.className = `task-item priority-${task.priority} ${task.completed ? 'completed' : ''}`;
             taskElement.innerHTML = `
@@ -376,8 +374,16 @@
                 </div>
                 <button class="delete-btn" onclick="confirmDelete('task', ${task.id})">Delete</button>
             `;
-
             return taskElement;
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveTasks();
+                renderTasks();
+            }
         }
 
         function moveTask(id, direction) {
@@ -391,7 +397,7 @@
             renderTasks();
         }
 
-        // Contact Management
+        // Contact Functions
         function addContact() {
             const contact = {
                 id: Date.now(),
@@ -410,17 +416,54 @@
             clearContactForm();
         }
 
-        function searchContacts() {
-            const searchTerm = document.getElementById('contactSearch').value.toLowerCase();
-            const filtered = contacts.filter(c => 
-                Object.values(c).some(val => 
-                    String(val).toLowerCase().includes(searchTerm)
-                )
-            );
-            renderContacts(filtered);
+        function renderContacts(filteredContacts = contacts) {
+            const contactsList = document.getElementById('contactsList');
+            contactsList.innerHTML = filteredContacts.map(contact => `
+                <div class="contact-item">
+                    <div class="move-buttons">
+                        <button onclick="moveContact(${contact.id}, 'up')">↑</button>
+                        <button onclick="moveContact(${contact.id}, 'down')">↓</button>
+                    </div>
+                    <div class="contact-header">
+                        <span class="editable" contenteditable="true" 
+                              oninput="updateContactField(${contact.id}, 'name', this.innerText)">
+                            ${contact.name}
+                        </span>
+                    </div>
+                    <div class="contact-details">
+                        <div>Email: <input type="email" value="${contact.email}" 
+                               onchange="updateContactField(${contact.id}, 'email', this.value)"></div>
+                        <div>Phone: <input type="tel" value="${contact.phone}" 
+                               onchange="updateContactField(${contact.id}, 'phone', this.value)"></div>
+                        <div>Department: <input type="text" value="${contact.department}" 
+                               onchange="updateContactField(${contact.id}, 'department', this.value)"></div>
+                    </div>
+                    <div class="notes-header" onclick="toggleNotes(this)">
+                        📝 Notes (${contact.notes.length ? contact.notes.split(/\s+/).length + ' words' : 'empty'})
+                    </div>
+                    <div class="notes-content">
+                        <textarea class="editable" 
+                                  oninput="updateContactField(${contact.id}, 'notes', this.value)">
+                            ${contact.notes}
+                        </textarea>
+                    </div>
+                    <button class="delete-btn" onclick="confirmDelete('contact', ${contact.id})">Delete</button>
+                </div>
+            `).join('');
         }
 
-        // Process Management
+        function moveContact(id, direction) {
+            const index = contacts.findIndex(c => c.id === id);
+            if (direction === 'up' && index > 0) {
+                [contacts[index], contacts[index - 1]] = [contacts[index - 1], contacts[index]];
+            } else if (direction === 'down' && index < contacts.length - 1) {
+                [contacts[index], contacts[index + 1]] = [contacts[index + 1], contacts[index]];
+            }
+            saveContacts();
+            renderContacts();
+        }
+
+        // Process Functions
         function addProcess() {
             const process = {
                 id: Date.now(),
@@ -438,13 +481,43 @@
             clearProcessForm();
         }
 
-        function searchProcesses() {
-            const searchTerm = document.getElementById('processSearch').value.toLowerCase();
-            const filtered = processes.filter(p => 
-                p.title.toLowerCase().includes(searchTerm) ||
-                p.steps.toLowerCase().includes(searchTerm)
-            );
-            renderProcesses(filtered);
+        function renderProcesses(filteredProcesses = processes) {
+            const processesList = document.getElementById('processesList');
+            processesList.innerHTML = filteredProcesses.map(process => `
+                <div class="process-item">
+                    <div class="move-buttons">
+                        <button onclick="moveProcess(${process.id}, 'up')">↑</button>
+                        <button onclick="moveProcess(${process.id}, 'down')">↓</button>
+                    </div>
+                    <div class="process-header">
+                        <span class="editable" contenteditable="true" 
+                              oninput="updateProcessField(${process.id}, 'title', this.innerText)">
+                            ${process.title}
+                        </span>
+                    </div>
+                    <div class="notes-header" onclick="toggleNotes(this)">
+                        📝 Steps (${process.steps.length ? process.steps.split(/\n/).length + ' steps' : 'empty'})
+                    </div>
+                    <div class="notes-content">
+                        <textarea class="editable" 
+                                  oninput="updateProcessField(${process.id}, 'steps', this.value)">
+                            ${process.steps}
+                        </textarea>
+                    </div>
+                    <button class="delete-btn" onclick="confirmDelete('process', ${process.id})">Delete</button>
+                </div>
+            `).join('');
+        }
+
+        function moveProcess(id, direction) {
+            const index = processes.findIndex(p => p.id === id);
+            if (direction === 'up' && index > 0) {
+                [processes[index], processes[index - 1]] = [processes[index - 1], processes[index]];
+            } else if (direction === 'down' && index < processes.length - 1) {
+                [processes[index], processes[index + 1]] = [processes[index + 1], processes[index]];
+            }
+            saveProcesses();
+            renderProcesses();
         }
 
         // Common Functions
@@ -456,12 +529,94 @@
             }
         }
 
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+            renderTasks();
+        }
+
+        function deleteContact(id) {
+            contacts = contacts.filter(c => c.id !== id);
+            saveContacts();
+            renderContacts();
+        }
+
+        function deleteProcess(id) {
+            processes = processes.filter(p => p.id !== id);
+            saveProcesses();
+            renderProcesses();
+        }
+
+        function updateTaskField(id, field, value) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task[field] = value;
+                saveTasks();
+            }
+        }
+
+        function updateContactField(id, field, value) {
+            const contact = contacts.find(c => c.id === id);
+            if (contact) {
+                contact[field] = value;
+                saveContacts();
+            }
+        }
+
+        function updateProcessField(id, field, value) {
+            const process = processes.find(p => p.id === id);
+            if (process) {
+                process[field] = value;
+                process.updated = new Date().toISOString();
+                saveProcesses();
+            }
+        }
+
         function toggleNotes(header) {
             const content = header.nextElementSibling;
             content.classList.toggle('expanded');
         }
 
-        // Storage Functions
+        function searchContacts() {
+            const searchTerm = document.getElementById('contactSearch').value.toLowerCase();
+            const filtered = contacts.filter(c => 
+                Object.values(c).some(val => 
+                    String(val).toLowerCase().includes(searchTerm)
+                )
+            );
+            renderContacts(filtered);
+        }
+
+        function searchProcesses() {
+            const searchTerm = document.getElementById('processSearch').value.toLowerCase();
+            const filtered = processes.filter(p => 
+                p.title.toLowerCase().includes(searchTerm) ||
+                p.steps.toLowerCase().includes(searchTerm)
+            );
+            renderProcesses(filtered);
+        }
+
+        // Form Clearing
+        function clearTaskForm() {
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDue').value = '';
+            document.getElementById('taskNotes').value = '';
+        }
+
+        function clearContactForm() {
+            document.getElementById('contactName').value = '';
+            document.getElementById('contactEmail').value = '';
+            document.getElementById('contactPhone').value = '';
+            document.getElementById('contactDepartment').value = '';
+            document.getElementById('contactNotes').value = '';
+        }
+
+        function clearProcessForm() {
+            document.getElementById('processTitle').value = '';
+            document.getElementById('processSteps').value = '';
+        }
+
+        // Storage
         function saveTasks() { localStorage.setItem('tasks', JSON.stringify(tasks)); }
         function saveContacts() { localStorage.setItem('contacts', JSON.stringify(contacts)); }
         function saveProcesses() { localStorage.setItem('processes', JSON.stringify(processes)); }
