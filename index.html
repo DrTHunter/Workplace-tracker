@@ -25,7 +25,7 @@
             width: 60px;
             background-color: #2d2d2d;
             color: white;
-            padding: 20px 5px 10px;
+            padding-top: 40px;
             height: 100vh;
             overflow-y: auto;
             font-size: 10px;
@@ -34,7 +34,6 @@
             align-items: center;
             transition: width 0.3s;
             position: relative;
-            cursor: pointer;
         }
 
         .sidebar.expanded {
@@ -236,7 +235,13 @@
         .task-title {
             font-weight: bold;
             margin-bottom: 5px;
-            width: 100%;
+            width: 50%;
+            max-width: 50%;
+            word-wrap: break-word;
+            min-height: 20px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
 
         .task-meta {
@@ -314,8 +319,8 @@
 
         .subheading-selector {
             position: absolute;
-            top: 88px;
-            right: 12px;
+            top: 12px;
+            right: 100px;
             display: flex;
             gap: 5px;
         }
@@ -492,6 +497,27 @@
             color: #ffc107;
         }
 
+        .waiting-on-input {
+            margin-left: 10px;
+            width: 200px;
+        }
+
+        .process-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .process-title {
+            width: 50%;
+            max-width: 50%;
+            word-wrap: break-word;
+            min-height: 20px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
         @media (max-width: 768px) {
             body {
                 flex-direction: column;
@@ -541,8 +567,8 @@
     </style>
 </head>
 <body>
-    <div class="sidebar" onclick="toggleSidebar()">
-        <button class="sidebar-toggle">
+    <div class="sidebar">
+        <button class="sidebar-toggle" onclick="toggleSidebar(event)">
             <i class="fas fa-bars"></i>
         </button>
         <div class="sidebar-item active" onclick="openTab('tasks')">
@@ -636,6 +662,9 @@
                     <input type="text" id="contactName" placeholder="Name">
                 </div>
                 <div class="input-group">
+                    <input type="text" id="contactJobTitle" placeholder="Job Title">
+                </div>
+                <div class="input-group">
                     <input type="email" id="contactEmail" placeholder="Email">
                 </div>
                 <div class="input-group">
@@ -721,7 +750,8 @@
         }
 
         // Toggle sidebar
-        function toggleSidebar() {
+        function toggleSidebar(event) {
+            event.stopPropagation();
             const sidebar = document.querySelector('.sidebar');
             sidebar.classList.toggle('expanded');
             
@@ -1303,11 +1333,13 @@
             const contact = {
                 id: Date.now(),
                 name: document.getElementById('contactName').value.trim(),
+                jobTitle: document.getElementById('contactJobTitle').value.trim(),
                 email: document.getElementById('contactEmail').value.trim(),
                 phone: document.getElementById('contactPhone').value.trim(),
                 department: document.getElementById('contactDepartment').value.trim(),
                 notes: document.getElementById('contactNotes').value.trim(),
                 flagged: false,
+                waitingOn: '',
                 subheading: contactSubheadings[0]
             };
 
@@ -1336,20 +1368,50 @@
 
             contactElement.innerHTML = `
                 <div class="contact-header">
-                    <span contenteditable="true" 
+                    <span class="task-title" contenteditable="true" 
                           oninput="updateContactField(${contact.id}, 'name', this.innerText)">
                         ${contact.name}
                     </span>
-                    <i class="fas fa-bookmark bookmark-flag ${contact.flagged ? 'active' : ''}" 
-                       onclick="toggleContactFlag(${contact.id})"></i>
-                    <button class="delete-btn" onclick="confirmDelete('contact', ${contact.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <div class="task-controls">
+                        <i class="fas fa-bookmark bookmark-flag ${contact.flagged ? 'active' : ''}" 
+                           onclick="toggleContactFlag(${contact.id})"></i>
+                        <input type="text" class="waiting-on-input" placeholder="Waiting on..." 
+                               value="${contact.waitingOn || ''}" 
+                               oninput="updateContactField(${contact.id}, 'waitingOn', this.value)">
+                        <button class="delete-btn" onclick="confirmDelete('contact', ${contact.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="contact-details">
-                    <div>Email: ${contact.email || 'Not specified'}</div>
-                    <div>Phone: ${contact.phone || 'Not specified'}</div>
-                    <div>Department: ${contact.department || 'Not specified'}</div>
+                    <div>
+                        <span>Job Title: </span>
+                        <span class="task-title" contenteditable="true" 
+                              oninput="updateContactField(${contact.id}, 'jobTitle', this.innerText)">
+                            ${contact.jobTitle || 'Not specified'}
+                        </span>
+                    </div>
+                    <div>
+                        <span>Email: </span>
+                        <span class="task-title" contenteditable="true" 
+                              oninput="updateContactField(${contact.id}, 'email', this.innerText)">
+                            ${contact.email || 'Not specified'}
+                        </span>
+                    </div>
+                    <div>
+                        <span>Phone: </span>
+                        <span class="task-title" contenteditable="true" 
+                              oninput="updateContactField(${contact.id}, 'phone', this.innerText)">
+                            ${contact.phone || 'Not specified'}
+                        </span>
+                    </div>
+                    <div>
+                        <span>Department: </span>
+                        <span class="task-title" contenteditable="true" 
+                              oninput="updateContactField(${contact.id}, 'department', this.innerText)">
+                            ${contact.department || 'Not specified'}
+                        </span>
+                    </div>
                 </div>
                 <div class="notes-header" onclick="toggleNotes(this)">
                     Notes
@@ -1430,13 +1492,20 @@
 
             processElement.innerHTML = `
                 <div class="process-header">
-                    <span contenteditable="true" 
+                    <span class="process-title" contenteditable="true" 
                           oninput="updateProcessField(${process.id}, 'title', this.innerText)">
                         ${process.title}
                     </span>
-                    <button class="delete-btn" onclick="confirmDelete('process', ${process.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <div class="task-controls">
+                        <button class="delete-btn" onclick="confirmDelete('process', ${process.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="subheading-selector">
+                        <select onchange="updateProcessField(${process.id}, 'subheading', this.value)">
+                            ${subheadingOptions}
+                        </select>
+                    </div>
                 </div>
                 <div class="notes-header" onclick="toggleNotes(this)">
                     Steps
@@ -1450,11 +1519,6 @@
                 <div class="move-buttons">
                     <button onclick="moveProcess(${process.id}, 'up')">↑</button>
                     <button onclick="moveProcess(${process.id}, 'down')">↓</button>
-                </div>
-                <div class="subheading-selector">
-                    <select onchange="updateProcessField(${process.id}, 'subheading', this.value)">
-                        ${subheadingOptions}
-                    </select>
                 </div>
             `;
             return processElement;
@@ -1696,6 +1760,7 @@
 
         function clearContactForm() {
             document.getElementById('contactName').value = '';
+            document.getElementById('contactJobTitle').value = '';
             document.getElementById('contactEmail').value = '';
             document.getElementById('contactPhone').value = '';
             document.getElementById('contactDepartment').value = '';
