@@ -15,30 +15,47 @@
 
         body {
             background-color: #f5f7fa;
-            padding: 10px;
+            padding: 0;
             display: flex;
+            height: 100vh;
+            overflow: hidden;
         }
 
         .sidebar {
-            width: 80px;
+            width: 60px;
             background-color: #2d2d2d;
             color: white;
             padding: 10px 5px;
-            border-radius: 10px 0 0 10px;
-            margin-right: 5px;
-            height: calc(100vh - 20px);
+            height: 100vh;
             overflow-y: auto;
-            font-size: 12px;
+            font-size: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            transition: width 0.3s;
+            position: relative;
+        }
+
+        .sidebar.expanded {
+            width: 200px;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
         }
 
         .sidebar-item {
-            padding: 10px 5px;
+            padding: 8px 0;
             cursor: pointer;
             border-radius: 4px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             width: 100%;
             text-align: center;
             display: flex;
@@ -47,8 +64,12 @@
         }
 
         .sidebar-item i {
-            font-size: 20px;
-            margin-bottom: 5px;
+            font-size: 16px;
+            margin-bottom: 3px;
+        }
+
+        .sidebar-item span {
+            font-size: 10px;
         }
 
         .sidebar-item:hover {
@@ -59,16 +80,37 @@
             background-color: #1a73e8;
         }
 
+        .sidebar-content {
+            display: none;
+            width: 100%;
+            padding: 5px;
+            font-size: 10px;
+        }
+
+        .sidebar.expanded .sidebar-content {
+            display: block;
+        }
+
+        .sidebar-content-item {
+            padding: 4px;
+            margin: 2px 0;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-content-item:hover {
+            background-color: #3d3d3d;
+        }
+
         .container {
             flex: 1;
-            max-width: 1000px;
             background-color: white;
-            border-radius: 0 10px 10px 0;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            overflow: hidden;
-            height: calc(100vh - 20px);
+            height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         .tabs {
@@ -110,12 +152,13 @@
         }
 
         .input-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 15px;
             transition: all 0.3s ease;
             overflow: hidden;
+            align-items: flex-end;
         }
 
         .input-section.collapsed {
@@ -128,6 +171,7 @@
         .input-group {
             display: flex;
             flex-direction: column;
+            min-width: 150px;
         }
 
         .input-group label {
@@ -141,6 +185,7 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 13px;
+            width: 100%;
         }
 
         button {
@@ -152,6 +197,7 @@
             cursor: pointer;
             transition: filter 0.3s;
             font-size: 13px;
+            height: fit-content;
         }
 
         button:hover {
@@ -183,9 +229,10 @@
             background-color: #f8f9fa;
         }
 
-        .editable {
-            border-bottom: 1px dashed #666;
-            cursor: text;
+        .task-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .task-meta {
@@ -195,6 +242,12 @@
             font-size: 0.85em;
             color: #666;
             flex-wrap: wrap;
+        }
+
+        .task-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .notes-header {
@@ -243,6 +296,14 @@
             gap: 5px;
         }
 
+        .subheading-selector {
+            position: absolute;
+            top: 72px;
+            right: 8px;
+            display: flex;
+            gap: 5px;
+        }
+
         .search-bar {
             margin-bottom: 15px;
             width: 100%;
@@ -256,9 +317,8 @@
             margin-bottom: 10px;
         }
 
-        /* New styles for the notes textarea in input section */
         .notes-container {
-            grid-column: 1 / -1;
+            width: 100%;
             margin-top: 15px;
         }
         
@@ -272,7 +332,6 @@
             font-size: 14px;
         }
 
-        /* Star rating system */
         .star-rating {
             display: flex;
             align-items: center;
@@ -290,7 +349,6 @@
             color: #ffc107;
         }
 
-        /* Timeline progress bar */
         .timeline-container {
             margin-top: 10px;
             width: 100%;
@@ -342,20 +400,12 @@
             background: white;
         }
 
-        .contact-details div {
+        .contact-details {
             margin: 5px 0;
         }
 
-        .contact-details input {
-            border: none;
-            border-bottom: 1px dashed #666;
-            padding: 2px 5px;
-            background: transparent;
-        }
-
-        .contact-details input:focus {
-            outline: none;
-            background: white;
+        .contact-details div {
+            margin: 5px 0;
         }
 
         .toggle-inputs-btn {
@@ -373,16 +423,19 @@
         @media (max-width: 768px) {
             body {
                 flex-direction: column;
+                height: auto;
             }
             
             .sidebar {
                 width: 100%;
                 height: auto;
-                margin-bottom: 5px;
-                border-radius: 10px;
                 flex-direction: row;
                 flex-wrap: wrap;
                 justify-content: space-around;
+            }
+            
+            .sidebar.expanded {
+                width: 100%;
             }
             
             .sidebar-item {
@@ -391,7 +444,6 @@
             }
             
             .container {
-                border-radius: 10px;
                 height: auto;
             }
             
@@ -402,7 +454,7 @@
             }
             
             .input-section {
-                grid-template-columns: 1fr;
+                flex-direction: column;
             }
             
             .task-meta {
@@ -418,18 +470,26 @@
 </head>
 <body>
     <div class="sidebar">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
         <div class="sidebar-item active" onclick="openTab('tasks')">
             <i class="fas fa-tasks"></i>
             <span>Tasks</span>
         </div>
+        <div class="sidebar-content" id="tasks-sidebar"></div>
+        
         <div class="sidebar-item" onclick="openTab('contacts')">
             <i class="fas fa-address-book"></i>
             <span>Contacts</span>
         </div>
+        <div class="sidebar-content" id="contacts-sidebar"></div>
+        
         <div class="sidebar-item" onclick="openTab('processes')">
             <i class="fas fa-project-diagram"></i>
             <span>Processes</span>
         </div>
+        <div class="sidebar-content" id="processes-sidebar"></div>
     </div>
 
     <div class="container">
@@ -445,16 +505,19 @@
                 <i class="fas fa-chevron-down"></i> Toggle Task Inputs
             </button>
             <div class="input-section">
-                <div class="category-management">
-                    <select id="taskCategory">
-                        <option value="">Select Category</option>
-                    </select>
-                    <input type="text" id="newCategory" placeholder="New category">
-                    <button onclick="addCategory()">Add</button>
-                </div>
                 <div class="input-group">
                     <input type="text" id="taskTitle" placeholder="Task title">
                 </div>
+                <div class="input-group">
+                    <label for="taskCategory">Category</label>
+                    <select id="taskCategory">
+                        <option value="">Select Category</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="newCategory" placeholder="New category">
+                </div>
+                <button onclick="addCategory()">Add Category</button>
                 <div class="input-group">
                     <label for="taskStart">Start Date</label>
                     <input type="date" id="taskStart">
@@ -494,10 +557,18 @@
             </button>
             <input type="text" class="search-bar" id="contactSearch" placeholder="Search contacts..." oninput="searchContacts()">
             <div class="input-section">
-                <input type="text" id="contactName" placeholder="Name">
-                <input type="email" id="contactEmail" placeholder="Email">
-                <input type="tel" id="contactPhone" placeholder="Phone">
-                <input type="text" id="contactDepartment" placeholder="Department">
+                <div class="input-group">
+                    <input type="text" id="contactName" placeholder="Name">
+                </div>
+                <div class="input-group">
+                    <input type="email" id="contactEmail" placeholder="Email">
+                </div>
+                <div class="input-group">
+                    <input type="tel" id="contactPhone" placeholder="Phone">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="contactDepartment" placeholder="Department">
+                </div>
                 <button onclick="addContact()">Add Contact</button>
                 
                 <div class="notes-container">
@@ -516,7 +587,9 @@
             </button>
             <input type="text" class="search-bar" id="processSearch" placeholder="Search processes..." oninput="searchProcesses()">
             <div class="input-section">
-                <input type="text" id="processTitle" placeholder="Process title">
+                <div class="input-group">
+                    <input type="text" id="processTitle" placeholder="Process title">
+                </div>
                 <button onclick="addProcess()">Add Process</button>
                 
                 <div class="notes-container">
@@ -558,6 +631,67 @@
             if (tabName === 'tasks') sidebarItems[0].classList.add('active');
             else if (tabName === 'contacts') sidebarItems[1].classList.add('active');
             else if (tabName === 'processes') sidebarItems[2].classList.add('active');
+            
+            updateSidebar(tabName);
+        }
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('expanded');
+            
+            const icon = document.querySelector('.sidebar-toggle i');
+            if (sidebar.classList.contains('expanded')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        }
+
+        // Update sidebar content
+        function updateSidebar(tabName) {
+            const sidebar = document.getElementById(`${tabName}-sidebar`);
+            if (!sidebar) return;
+            
+            sidebar.innerHTML = '';
+            
+            if (tabName === 'tasks') {
+                const activeTasks = tasks.filter(t => !t.completed);
+                activeTasks.forEach(task => {
+                    const item = document.createElement('div');
+                    item.className = 'sidebar-content-item';
+                    item.textContent = task.title;
+                    item.onclick = () => scrollToItem('task', task.id);
+                    sidebar.appendChild(item);
+                });
+            } else if (tabName === 'contacts') {
+                contacts.forEach(contact => {
+                    const item = document.createElement('div');
+                    item.className = 'sidebar-content-item';
+                    item.textContent = contact.name;
+                    item.onclick = () => scrollToItem('contact', contact.id);
+                    sidebar.appendChild(item);
+                });
+            } else if (tabName === 'processes') {
+                processes.forEach(process => {
+                    const item = document.createElement('div');
+                    item.className = 'sidebar-content-item';
+                    item.textContent = process.title;
+                    item.onclick = () => scrollToItem('process', process.id);
+                    sidebar.appendChild(item);
+                });
+            }
+        }
+
+        function scrollToItem(type, id) {
+            const element = document.querySelector(`.${type}-item[data-id="${id}"]`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.style.animation = 'highlight 1s';
+                setTimeout(() => element.style.animation = '', 1000);
+            }
         }
 
         // Toggle input sections
@@ -593,6 +727,9 @@
                 renderTasks();
                 renderContacts();
                 renderProcesses();
+                updateSidebar('tasks');
+                updateSidebar('contacts');
+                updateSidebar('processes');
             }
         }
 
@@ -609,14 +746,18 @@
         // Subheading functions
         function renderSubheadings(type) {
             const container = document.getElementById(`${type}Subheadings`);
-            const listContainer = type === 'task' ? document.getElementById('activeList') : 
+            const listContainer = type === 'task' ? document.querySelector('#tasks .task-list') : 
                                type === 'contact' ? document.getElementById('contactsList') : 
                                document.getElementById('processesList');
             const subheadings = type === 'task' ? taskSubheadings : 
                               type === 'contact' ? contactSubheadings : processSubheadings;
             
             container.innerHTML = '';
-            listContainer.innerHTML = '';
+            if (type === 'task') {
+                document.getElementById('doneList').innerHTML = '';
+            } else {
+                listContainer.innerHTML = '';
+            }
             
             subheadings.forEach((subheading, index) => {
                 // Add subheading to management area
@@ -714,6 +855,7 @@
             
             saveSubheadings(type);
             renderSubheadings(type);
+            updateSidebar(type);
         }
 
         function addSubheading(type, index) {
@@ -723,6 +865,7 @@
             subheadings.splice(index, 0, 'New Subheading');
             saveSubheadings(type);
             renderSubheadings(type);
+            updateSidebar(type);
         }
 
         function removeSubheading(type, index) {
@@ -759,6 +902,7 @@
             subheadings.splice(index, 1);
             saveSubheadings(type);
             renderSubheadings(type);
+            updateSidebar(type);
         }
 
         function saveSubheadings(type) {
@@ -834,12 +978,13 @@
             saveTasks();
             renderTasks();
             clearTaskForm();
+            updateSidebar('tasks');
         }
 
         function renderTasks() {
-            const doneList = document.getElementById('doneList');
-            doneList.innerHTML = '';
-
+            const taskList = document.querySelector('#tasks .task-list');
+            taskList.innerHTML = '<div id="taskSubheadings"></div><h3 class="completed-header">Completed Tasks</h3><div id="doneList"></div>';
+            
             // Render active tasks under their subheadings
             renderSubheadings('task');
             
@@ -847,7 +992,7 @@
             const completedTasks = tasks.filter(t => t.completed);
             completedTasks.forEach(task => {
                 const taskElement = createTaskElement(task);
-                doneList.appendChild(taskElement);
+                document.getElementById('doneList').appendChild(taskElement);
             });
         }
 
@@ -886,52 +1031,57 @@
             ).join('');
 
             taskElement.innerHTML = `
-                <div class="move-buttons">
-                    <button onclick="moveTask(${task.id}, 'up')">↑</button>
-                    <button onclick="moveTask(${task.id}, 'down')">↓</button>
-                </div>
                 <div class="task-header">
                     <input type="checkbox" ${task.completed ? 'checked' : ''} 
                            onchange="toggleTask(${task.id})">
-                    <span class="editable" contenteditable="true" 
+                    <span contenteditable="true" 
                           oninput="updateTaskField(${task.id}, 'title', this.innerText)">
                         ${task.title}
                     </span>
                 </div>
                 <div class="task-meta">
-                    <span>Category: 
-                        <select class="editable" onchange="updateTaskField(${task.id}, 'category', this.value)">
+                    <div class="task-meta-item">
+                        <span>Category:</span>
+                        <select onchange="updateTaskField(${task.id}, 'category', this.value)">
+                            <option value="">No Category</option>
                             ${categories.map(opt => `<option ${task.category === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                         </select>
-                    </span>
-                    <span>Priority: 
+                    </div>
+                    <div class="task-meta-item">
+                        <span>Priority:</span>
                         <div class="star-rating">
                             ${starsHTML}
                         </div>
-                    </span>
-                    <span>Subheading: 
-                        <select class="editable" onchange="updateTaskField(${task.id}, 'subheading', this.value)">
-                            ${subheadingOptions}
-                        </select>
-                    </span>
-                    <span>Start: 
-                        <input type="date" class="editable" value="${task.start}" 
+                    </div>
+                    <div class="task-meta-item">
+                        <span>Start:</span>
+                        <input type="date" value="${task.start}" 
                                onchange="updateTaskField(${task.id}, 'start', this.value)">
-                    </span>
-                    <span>Due: 
-                        <input type="date" class="editable" value="${task.due}" 
+                    </div>
+                    <div class="task-meta-item">
+                        <span>Due:</span>
+                        <input type="date" value="${task.due}" 
                                onchange="updateTaskField(${task.id}, 'due', this.value)">
-                    </span>
+                    </div>
                 </div>
                 ${timelineHTML}
                 <div class="notes-header" onclick="toggleNotes(this)">
                     📝 Notes
                 </div>
                 <div class="notes-content">
-                    <textarea class="editable" oninput="updateTaskField(${task.id}, 'notes', this.value)"
+                    <textarea oninput="updateTaskField(${task.id}, 'notes', this.value)"
                               style="width:100%; min-height: 120px;">${task.notes}</textarea>
                 </div>
                 <button class="delete-btn" onclick="confirmDelete('task', ${task.id})">Delete</button>
+                <div class="move-buttons">
+                    <button onclick="moveTask(${task.id}, 'up')">↑</button>
+                    <button onclick="moveTask(${task.id}, 'down')">↓</button>
+                </div>
+                <div class="subheading-selector">
+                    <select onchange="updateTaskField(${task.id}, 'subheading', this.value)">
+                        ${subheadingOptions}
+                    </select>
+                </div>
             `;
             return taskElement;
         }
@@ -977,6 +1127,7 @@
                 task.priority = newPriority >= 4 ? 'high' : newPriority >= 2 ? 'medium' : 'low';
                 saveTasks();
                 renderTasks();
+                updateSidebar('tasks');
             }
         }
 
@@ -986,6 +1137,7 @@
                 task.completed = !task.completed;
                 saveTasks();
                 renderTasks();
+                updateSidebar('tasks');
             }
         }
 
@@ -998,6 +1150,7 @@
             }
             saveTasks();
             renderTasks();
+            updateSidebar('tasks');
         }
 
         // Contact Functions
@@ -1018,6 +1171,7 @@
             saveContacts();
             renderContacts();
             clearContactForm();
+            updateSidebar('contacts');
         }
 
         function renderContacts(filteredContacts = contacts) {
@@ -1036,40 +1190,36 @@
             ).join('');
 
             contactElement.innerHTML = `
-                <div class="move-buttons">
-                    <button onclick="moveContact(${contact.id}, 'up')">↑</button>
-                    <button onclick="moveContact(${contact.id}, 'down')">↓</button>
-                </div>
                 <div class="contact-header">
-                    <span class="editable" contenteditable="true" 
+                    <span contenteditable="true" 
                           oninput="updateContactField(${contact.id}, 'name', this.innerText)">
                         ${contact.name}
                     </span>
                 </div>
                 <div class="contact-details">
-                    <div>Email: <input type="email" value="${contact.email}" 
-                           onchange="updateContactField(${contact.id}, 'email', this.value)"></div>
-                    <div>Phone: <input type="tel" value="${contact.phone}" 
-                           onchange="updateContactField(${contact.id}, 'phone', this.value)"></div>
-                    <div>Department: <input type="text" value="${contact.department}" 
-                           onchange="updateContactField(${contact.id}, 'department', this.value)"></div>
-                    <div>Subheading: 
-                        <select class="editable" onchange="updateContactField(${contact.id}, 'subheading', this.value)">
-                            ${subheadingOptions}
-                        </select>
-                    </div>
+                    <div>Email: ${contact.email || 'Not specified'}</div>
+                    <div>Phone: ${contact.phone || 'Not specified'}</div>
+                    <div>Department: ${contact.department || 'Not specified'}</div>
                 </div>
                 <div class="notes-header" onclick="toggleNotes(this)">
                     📝 Notes
                 </div>
                 <div class="notes-content">
-                    <textarea class="editable" 
-                              oninput="updateContactField(${contact.id}, 'notes', this.value)"
+                    <textarea oninput="updateContactField(${contact.id}, 'notes', this.value)"
                               style="width:100%; min-height: 120px;">
                         ${contact.notes}
                     </textarea>
                 </div>
                 <button class="delete-btn" onclick="confirmDelete('contact', ${contact.id})">Delete</button>
+                <div class="move-buttons">
+                    <button onclick="moveContact(${contact.id}, 'up')">↑</button>
+                    <button onclick="moveContact(${contact.id}, 'down')">↓</button>
+                </div>
+                <div class="subheading-selector">
+                    <select onchange="updateContactField(${contact.id}, 'subheading', this.value)">
+                        ${subheadingOptions}
+                    </select>
+                </div>
             `;
             return contactElement;
         }
@@ -1083,6 +1233,7 @@
             }
             saveContacts();
             renderContacts();
+            updateSidebar('contacts');
         }
 
         // Process Functions
@@ -1102,6 +1253,7 @@
             saveProcesses();
             renderProcesses();
             clearProcessForm();
+            updateSidebar('processes');
         }
 
         function renderProcesses(filteredProcesses = processes) {
@@ -1120,34 +1272,31 @@
             ).join('');
 
             processElement.innerHTML = `
-                <div class="move-buttons">
-                    <button onclick="moveProcess(${process.id}, 'up')">↑</button>
-                    <button onclick="moveProcess(${process.id}, 'down')">↓</button>
-                </div>
                 <div class="process-header">
-                    <span class="editable" contenteditable="true" 
+                    <span contenteditable="true" 
                           oninput="updateProcessField(${process.id}, 'title', this.innerText)">
                         ${process.title}
-                    </span>
-                </div>
-                <div class="task-meta">
-                    <span>Subheading: 
-                        <select class="editable" onchange="updateProcessField(${process.id}, 'subheading', this.value)">
-                            ${subheadingOptions}
-                        </select>
                     </span>
                 </div>
                 <div class="notes-header" onclick="toggleNotes(this)">
                     📝 Steps
                 </div>
                 <div class="notes-content">
-                    <textarea class="editable" 
-                              oninput="updateProcessField(${process.id}, 'steps', this.value)"
+                    <textarea oninput="updateProcessField(${process.id}, 'steps', this.value)"
                               style="width:100%; min-height: 120px;">
                         ${process.steps}
                     </textarea>
                 </div>
                 <button class="delete-btn" onclick="confirmDelete('process', ${process.id})">Delete</button>
+                <div class="move-buttons">
+                    <button onclick="moveProcess(${process.id}, 'up')">↑</button>
+                    <button onclick="moveProcess(${process.id}, 'down')">↓</button>
+                </div>
+                <div class="subheading-selector">
+                    <select onchange="updateProcessField(${process.id}, 'subheading', this.value)">
+                        ${subheadingOptions}
+                    </select>
+                </div>
             `;
             return processElement;
         }
@@ -1161,6 +1310,7 @@
             }
             saveProcesses();
             renderProcesses();
+            updateSidebar('processes');
         }
 
         // Common Functions
@@ -1176,18 +1326,21 @@
             tasks = tasks.filter(t => t.id !== id);
             saveTasks();
             renderTasks();
+            updateSidebar('tasks');
         }
 
         function deleteContact(id) {
             contacts = contacts.filter(c => c.id !== id);
             saveContacts();
             renderContacts();
+            updateSidebar('contacts');
         }
 
         function deleteProcess(id) {
             processes = processes.filter(p => p.id !== id);
             saveProcesses();
             renderProcesses();
+            updateSidebar('processes');
         }
 
         function updateTaskField(id, field, value) {
@@ -1197,6 +1350,10 @@
                 saveTasks();
                 if (field === 'subheading') {
                     renderTasks();
+                    updateSidebar('tasks');
+                }
+                if (field === 'title') {
+                    updateSidebar('tasks');
                 }
             }
         }
@@ -1208,6 +1365,10 @@
                 saveContacts();
                 if (field === 'subheading') {
                     renderContacts();
+                    updateSidebar('contacts');
+                }
+                if (field === 'name') {
+                    updateSidebar('contacts');
                 }
             }
         }
@@ -1220,6 +1381,10 @@
                 saveProcesses();
                 if (field === 'subheading') {
                     renderProcesses();
+                    updateSidebar('processes');
+                }
+                if (field === 'title') {
+                    updateSidebar('processes');
                 }
             }
         }
