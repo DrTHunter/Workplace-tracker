@@ -81,16 +81,11 @@
             filter: brightness(0.9);
         }
 
-        .lists-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .task-list, .contacts-table {
+        .task-list {
             background-color: #f8f9fa;
             border-radius: 5px;
             padding: 15px;
+            margin-bottom: 20px;
         }
 
         .task-item, .contact-item {
@@ -123,20 +118,36 @@
             color: #666;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
+        .contact-item {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
+        .contact-header {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .contact-notes {
+            width: 100%;
+            min-height: 80px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
         }
 
         .delete-btn {
             background-color: #dc3545;
+        }
+
+        .completed-header {
+            margin-top: 30px;
+            color: #666;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
         }
     </style>
 </head>
@@ -168,15 +179,11 @@
                 <button onclick="addTask()">Add Task</button>
             </div>
 
-            <div class="lists-container">
-                <div class="active-tasks">
-                    <h3>Active Tasks</h3>
-                    <div class="task-list" id="activeList"></div>
-                </div>
-                <div class="completed-tasks">
-                    <h3>Completed Tasks</h3>
-                    <div class="task-list" id="doneList"></div>
-                </div>
+            <div class="task-list">
+                <h3>Active Tasks</h3>
+                <div id="activeList"></div>
+                <h3 class="completed-header">Completed Tasks</h3>
+                <div id="doneList"></div>
             </div>
         </div>
 
@@ -197,19 +204,7 @@
                 </select>
             </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Department</th>
-                        <th>Notes</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="contactsList"></tbody>
-            </table>
+            <div id="contactsList"></div>
         </div>
     </div>
 
@@ -254,47 +249,53 @@
             activeList.innerHTML = '';
             doneList.innerHTML = '';
 
-            tasks.forEach(task => {
-                const taskElement = document.createElement('div');
-                taskElement.className = `task-item priority-${task.priority} ${task.completed ? 'completed' : ''}`;
-                taskElement.innerHTML = `
-                    <div class="task-header">
-                        <input type="checkbox" ${task.completed ? 'checked' : ''} 
-                               onchange="toggleTask(${task.id})">
-                        <span class="editable" contenteditable="true" 
-                              oninput="updateTaskField(${task.id}, 'title', this.innerText)">
-                            ${task.title}
-                        </span>
-                    </div>
-                    <div class="task-meta">
-                        <span>Category: 
-                            <select class="editable" onchange="updateTaskField(${task.id}, 'category', this.value)">
-                                ${['', 'Meeting', 'Development', 'Research', 'Administration']
-                                    .map(opt => `<option ${task.category === opt ? 'selected' : ''}>${opt}</option>`)
-                                    .join('')}
-                            </select>
-                        </span>
-                        <span>Due: 
-                            <input type="date" class="editable" value="${task.due}" 
-                                   onchange="updateTaskField(${task.id}, 'due', this.value)">
-                        </span>
-                        <span>Priority: 
-                            <select class="editable" onchange="updateTaskField(${task.id}, 'priority', this.value)">
-                                <option value="low" ${task.priority === 'low' ? 'selected' : ''}>Low</option>
-                                <option value="medium" ${task.priority === 'medium' ? 'selected' : ''}>Medium</option>
-                                <option value="high" ${task.priority === 'high' ? 'selected' : ''}>High</option>
-                            </select>
-                        </span>
-                    </div>
-                    <div class="task-notes">
-                        <textarea class="editable" oninput="updateTaskField(${task.id}, 'notes', this.value)"
-                                  style="width:100%; margin-top:10px">${task.notes}</textarea>
-                    </div>
-                    <button class="delete-btn" onclick="deleteTask(${task.id})">Delete</button>
-                `;
+            const activeTasks = tasks.filter(task => !task.completed);
+            const completedTasks = tasks.filter(task => task.completed);
 
-                (task.completed ? doneList : activeList).appendChild(taskElement);
-            });
+            activeTasks.forEach(task => createTaskElement(task, activeList));
+            completedTasks.forEach(task => createTaskElement(task, doneList));
+        }
+
+        function createTaskElement(task, container) {
+            const taskElement = document.createElement('div');
+            taskElement.className = `task-item priority-${task.priority} ${task.completed ? 'completed' : ''}`;
+            taskElement.innerHTML = `
+                <div class="task-header">
+                    <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                           onchange="toggleTask(${task.id})">
+                    <span class="editable" contenteditable="true" 
+                          oninput="updateTaskField(${task.id}, 'title', this.innerText)">
+                        ${task.title}
+                    </span>
+                </div>
+                <div class="task-meta">
+                    <span>Category: 
+                        <select class="editable" onchange="updateTaskField(${task.id}, 'category', this.value)">
+                            ${['', 'Meeting', 'Development', 'Research', 'Administration']
+                                .map(opt => `<option ${task.category === opt ? 'selected' : ''}>${opt}</option>`)
+                                .join('')}
+                        </select>
+                    </span>
+                    <span>Due: 
+                        <input type="date" class="editable" value="${task.due}" 
+                               onchange="updateTaskField(${task.id}, 'due', this.value)">
+                    </span>
+                    <span>Priority: 
+                        <select class="editable" onchange="updateTaskField(${task.id}, 'priority', this.value)">
+                            <option value="low" ${task.priority === 'low' ? 'selected' : ''}>Low</option>
+                            <option value="medium" ${task.priority === 'medium' ? 'selected' : ''}>Medium</option>
+                            <option value="high" ${task.priority === 'high' ? 'selected' : ''}>High</option>
+                        </select>
+                    </span>
+                </div>
+                <div class="task-notes">
+                    <textarea class="editable" oninput="updateTaskField(${task.id}, 'notes', this.value)"
+                              style="width:100%; margin-top:10px">${task.notes}</textarea>
+                </div>
+                <button class="delete-btn" onclick="deleteTask(${task.id})">Delete</button>
+            `;
+
+            container.appendChild(taskElement);
         }
 
         function toggleTask(id) {
@@ -349,28 +350,25 @@
             contactsList.innerHTML = '';
 
             contacts.forEach(contact => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td contenteditable="true" oninput="updateContactField(${contact.id}, 'name', this.innerText)">
-                        ${contact.name}
-                    </td>
-                    <td contenteditable="true" oninput="updateContactField(${contact.id}, 'email', this.innerText)">
-                        ${contact.email}
-                    </td>
-                    <td contenteditable="true" oninput="updateContactField(${contact.id}, 'phone', this.innerText)">
-                        ${contact.phone}
-                    </td>
-                    <td contenteditable="true" oninput="updateContactField(${contact.id}, 'department', this.innerText)">
-                        ${contact.department}
-                    </td>
-                    <td contenteditable="true" oninput="updateContactField(${contact.id}, 'notes', this.innerText)">
-                        ${contact.notes}
-                    </td>
-                    <td>
+                const contactDiv = document.createElement('div');
+                contactDiv.className = 'contact-item';
+                contactDiv.innerHTML = `
+                    <div class="contact-header">
+                        <input type="text" class="editable" value="${contact.name}" 
+                               oninput="updateContactField(${contact.id}, 'name', this.value)">
+                        <input type="email" class="editable" value="${contact.email}" 
+                               oninput="updateContactField(${contact.id}, 'email', this.value)">
+                        <input type="tel" class="editable" value="${contact.phone}" 
+                               oninput="updateContactField(${contact.id}, 'phone', this.value)">
+                        <input type="text" class="editable" value="${contact.department}" 
+                               oninput="updateContactField(${contact.id}, 'department', this.value)">
                         <button class="delete-btn" onclick="deleteContact(${contact.id})">Delete</button>
-                    </td>
+                    </div>
+                    <textarea class="contact-notes editable" 
+                              oninput="updateContactField(${contact.id}, 'notes', this.value)"
+                              placeholder="Add notes...">${contact.notes}</textarea>
                 `;
-                contactsList.appendChild(row);
+                contactsList.appendChild(contactDiv);
             });
         }
 
@@ -393,9 +391,23 @@
                 contacts.filter(c => c.department === department) : 
                 [...contacts];
             
+            const contactsList = document.getElementById('contactsList');
             contactsList.innerHTML = '';
             filtered.forEach(contact => {
-                // Re-use render logic or create separate function
+                // Re-create contact items for filtered results
+                const contactDiv = document.createElement('div');
+                contactDiv.className = 'contact-item';
+                contactDiv.innerHTML = `
+                    <div class="contact-header">
+                        <span>${contact.name}</span>
+                        <span>${contact.email}</span>
+                        <span>${contact.phone}</span>
+                        <span>${contact.department}</span>
+                        <button class="delete-btn" onclick="deleteContact(${contact.id})">Delete</button>
+                    </div>
+                    <textarea class="contact-notes">${contact.notes}</textarea>
+                `;
+                contactsList.appendChild(contactDiv);
             });
         }
 
