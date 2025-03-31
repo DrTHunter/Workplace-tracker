@@ -240,7 +240,7 @@
             word-wrap: break-word;
             min-height: 20px;
             padding: 5px;
-            border: 1px solid #ddd;
+            border: none;
             border-radius: 4px;
         }
 
@@ -262,7 +262,13 @@
 
         .current-step {
             margin-top: 5px;
-            width: 50%;
+            width: 100%;
+            min-height: 60px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            font-size: 13px;
         }
 
         .notes-header {
@@ -428,6 +434,24 @@
 
         .contact-details div {
             margin: 5px 0;
+            padding: 5px;
+        }
+
+        .contact-details span {
+            display: inline-block;
+            min-width: 80px;
+            color: #555;
+        }
+
+        .contact-details .editable {
+            border: none;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .contact-details .editable:focus {
+            outline: none;
+            background-color: #f0f0f0;
         }
 
         .new-item-btn {
@@ -514,8 +538,53 @@
             word-wrap: break-word;
             min-height: 20px;
             padding: 5px;
-            border: 1px solid #ddd;
+            border: none;
             border-radius: 4px;
+        }
+
+        .department-container {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+
+        .department-header {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        .department-header i {
+            margin-right: 8px;
+            transition: transform 0.2s;
+        }
+
+        .department-header.collapsed i {
+            transform: rotate(-90deg);
+        }
+
+        .department-content {
+            padding-left: 20px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .department-content.collapsed {
+            max-height: 0;
+        }
+
+        .department-subitem {
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-left: 15px;
+        }
+
+        .department-subitem:hover {
+            background-color: #f0f0f0;
         }
 
         @media (max-width: 768px) {
@@ -571,11 +640,24 @@
         <button class="sidebar-toggle" onclick="toggleSidebar(event)">
             <i class="fas fa-bars"></i>
         </button>
+        
         <div class="sidebar-item active" onclick="openTab('tasks')">
             <i class="fas fa-tasks"></i>
             <span>Tasks</span>
         </div>
-        <div class="sidebar-content" id="tasks-sidebar"></div>
+        <div class="sidebar-content" id="tasks-sidebar">
+            <div class="department-container">
+                <div class="department-header" onclick="toggleDepartment('tasks')">
+                    <i class="fas fa-chevron-down"></i>
+                    <span>Department</span>
+                </div>
+                <div class="department-content">
+                    <div class="department-subitem" onclick="scrollToSection('tasks')">Tasks</div>
+                    <div class="department-subitem" onclick="scrollToSection('contacts')">Contacts</div>
+                    <div class="department-subitem" onclick="scrollToSection('processes')">Processes</div>
+                </div>
+            </div>
+        </div>
         
         <div class="sidebar-item" onclick="openTab('contacts')">
             <i class="fas fa-address-book"></i>
@@ -729,6 +811,7 @@
         let processSubheadings = JSON.parse(localStorage.getItem('processSubheadings')) || ['General'];
         let activeSidebar = 'tasks';
         let collapsedSubheadings = JSON.parse(localStorage.getItem('collapsedSubheadings')) || {};
+        let departmentCollapsed = JSON.parse(localStorage.getItem('departmentCollapsed')) || {};
 
         // Tab Navigation
         function openTab(tabName) {
@@ -766,12 +849,37 @@
             }
         }
 
+        // Toggle department section
+        function toggleDepartment(type) {
+            const header = document.querySelector(`#${type}-sidebar .department-header`);
+            const content = document.querySelector(`#${type}-sidebar .department-content`);
+            
+            header.classList.toggle('collapsed');
+            content.classList.toggle('collapsed');
+            
+            departmentCollapsed[type] = header.classList.contains('collapsed');
+            localStorage.setItem('departmentCollapsed', JSON.stringify(departmentCollapsed));
+        }
+
+        // Scroll to section
+        function scrollToSection(section) {
+            const element = document.getElementById(section);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
         // Update sidebar content
         function updateSidebar(tabName) {
             const sidebar = document.getElementById(`${tabName}-sidebar`);
             if (!sidebar) return;
             
+            // Clear existing content except department section
+            const departmentSection = sidebar.querySelector('.department-container');
             sidebar.innerHTML = '';
+            if (departmentSection) {
+                sidebar.appendChild(departmentSection);
+            }
             
             if (tabName === 'tasks') {
                 const activeTasks = tasks.filter(t => !t.completed);
@@ -798,6 +906,16 @@
                     item.onclick = () => scrollToItem('process', process.id);
                     sidebar.appendChild(item);
                 });
+            }
+            
+            // Restore department collapsed state
+            if (departmentCollapsed[tabName]) {
+                const header = sidebar.querySelector('.department-header');
+                const content = sidebar.querySelector('.department-content');
+                if (header && content) {
+                    header.classList.add('collapsed');
+                    content.classList.add('collapsed');
+                }
             }
         }
 
@@ -837,6 +955,7 @@
                 contactSubheadings = ['General'];
                 processSubheadings = ['General'];
                 collapsedSubheadings = {};
+                departmentCollapsed = {};
                 
                 saveAllData();
                 renderTasks();
@@ -856,6 +975,7 @@
             localStorage.setItem('contactSubheadings', JSON.stringify(contactSubheadings));
             localStorage.setItem('processSubheadings', JSON.stringify(processSubheadings));
             localStorage.setItem('collapsedSubheadings', JSON.stringify(collapsedSubheadings));
+            localStorage.setItem('departmentCollapsed', JSON.stringify(departmentCollapsed));
         }
 
         // Subheading functions
@@ -918,6 +1038,26 @@
             const controls = document.createElement('div');
             controls.className = 'subheading-controls';
             
+            const upBtn = document.createElement('button');
+            upBtn.innerHTML = '↑';
+            upBtn.style.padding = '2px 5px';
+            upBtn.onclick = (e) => {
+                e.stopPropagation();
+                moveSubheading(type, index, 'up');
+            };
+            upBtn.disabled = index === 0;
+            
+            const downBtn = document.createElement('button');
+            downBtn.innerHTML = '↓';
+            downBtn.style.padding = '2px 5px';
+            downBtn.onclick = (e) => {
+                e.stopPropagation();
+                moveSubheading(type, index, 'down');
+            };
+            downBtn.disabled = index === (type === 'task' ? taskSubheadings : 
+                                        type === 'contact' ? contactSubheadings : 
+                                        processSubheadings).length - 1;
+            
             const removeBtn = document.createElement('button');
             removeBtn.innerHTML = '×';
             removeBtn.style.padding = '2px 5px';
@@ -929,6 +1069,8 @@
             removeBtn.disabled = (type === 'task' ? taskSubheadings : 
                                 type === 'contact' ? contactSubheadings : processSubheadings).length <= 1;
             
+            controls.appendChild(upBtn);
+            controls.appendChild(downBtn);
             controls.appendChild(removeBtn);
             
             subheadingElement.appendChild(input);
@@ -993,6 +1135,21 @@
                     contentContainer.appendChild(element);
                 });
             }
+        }
+
+        function moveSubheading(type, index, direction) {
+            const subheadings = type === 'task' ? taskSubheadings : 
+                              type === 'contact' ? contactSubheadings : processSubheadings;
+            
+            if (direction === 'up' && index > 0) {
+                [subheadings[index], subheadings[index - 1]] = [subheadings[index - 1], subheadings[index]];
+            } else if (direction === 'down' && index < subheadings.length - 1) {
+                [subheadings[index], subheadings[index + 1]] = [subheadings[index + 1], subheadings[index]];
+            }
+            
+            saveSubheadings(type);
+            renderSubheadings(type);
+            updateSidebar(type);
         }
 
         function updateSubheading(type, index, value) {
@@ -1219,9 +1376,8 @@
                         </button>
                     </div>
                 </div>
-                <input type="text" class="current-step" placeholder="Current step..." 
-                       value="${task.currentStep || ''}" 
-                       oninput="updateTaskField(${task.id}, 'currentStep', this.value)">
+                <textarea class="current-step" placeholder="Current step..." 
+                       oninput="updateTaskField(${task.id}, 'currentStep', this.value)">${task.currentStep || ''}</textarea>
                 <div class="task-meta">
                     <div class="task-meta-item">
                         <span>Priority:</span>
@@ -1386,28 +1542,28 @@
                 <div class="contact-details">
                     <div>
                         <span>Job Title: </span>
-                        <span class="task-title" contenteditable="true" 
+                        <span class="editable" contenteditable="true" 
                               oninput="updateContactField(${contact.id}, 'jobTitle', this.innerText)">
                             ${contact.jobTitle || 'Not specified'}
                         </span>
                     </div>
                     <div>
                         <span>Email: </span>
-                        <span class="task-title" contenteditable="true" 
+                        <span class="editable" contenteditable="true" 
                               oninput="updateContactField(${contact.id}, 'email', this.innerText)">
                             ${contact.email || 'Not specified'}
                         </span>
                     </div>
                     <div>
                         <span>Phone: </span>
-                        <span class="task-title" contenteditable="true" 
+                        <span class="editable" contenteditable="true" 
                               oninput="updateContactField(${contact.id}, 'phone', this.innerText)">
                             ${contact.phone || 'Not specified'}
                         </span>
                     </div>
                     <div>
                         <span>Department: </span>
-                        <span class="task-title" contenteditable="true" 
+                        <span class="editable" contenteditable="true" 
                               oninput="updateContactField(${contact.id}, 'department', this.innerText)">
                             ${contact.department || 'Not specified'}
                         </span>
