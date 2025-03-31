@@ -20,38 +20,48 @@
         }
 
         .sidebar {
-            width: 200px;
-            background-color: #1a73e8;
+            width: 150px;
+            background-color: #000;
             color: white;
-            padding: 10px;
+            padding: 10px 5px;
             border-radius: 10px 0 0 10px;
             margin-right: 5px;
             height: calc(100vh - 20px);
             overflow-y: auto;
+            font-size: 12px;
         }
 
         .sidebar-header {
-            padding: 10px;
+            padding: 8px 5px;
             font-weight: bold;
             cursor: pointer;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header i {
+            margin-right: 5px;
+            font-size: 10px;
         }
 
         .sidebar-content {
             padding-left: 15px;
+            display: none;
         }
 
         .sidebar-item {
-            padding: 8px 5px;
+            padding: 6px 5px;
             cursor: pointer;
             border-radius: 4px;
             margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .sidebar-item:hover {
-            background-color: #1557b0;
+            background-color: #333;
         }
 
         .container {
@@ -385,20 +395,20 @@
 <body>
     <div class="sidebar">
         <div class="sidebar-header" onclick="toggleSidebar('tasks')">
-            <span>Active Tasks</span>
             <i class="fas fa-chevron-down"></i>
+            <span>Active Tasks</span>
         </div>
         <div class="sidebar-content" id="tasks-sidebar"></div>
         
         <div class="sidebar-header" onclick="toggleSidebar('contacts')">
-            <span>Contacts</span>
             <i class="fas fa-chevron-down"></i>
+            <span>Contacts</span>
         </div>
         <div class="sidebar-content" id="contacts-sidebar"></div>
         
         <div class="sidebar-header" onclick="toggleSidebar('processes')">
-            <span>Processes</span>
             <i class="fas fa-chevron-down"></i>
+            <span>Processes</span>
         </div>
         <div class="sidebar-content" id="processes-sidebar"></div>
     </div>
@@ -508,6 +518,9 @@
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
             event.currentTarget.classList.add('active');
+            
+            // Update sidebar for the active tab
+            updateSidebar(tabName);
         }
 
         // Sidebar functions
@@ -539,7 +552,10 @@
                     const item = document.createElement('div');
                     item.className = 'sidebar-item';
                     item.textContent = task.title;
-                    item.onclick = () => scrollToItem('task', task.id);
+                    item.onclick = () => {
+                        openTab('tasks');
+                        setTimeout(() => scrollToItem('task', task.id), 100);
+                    };
                     sidebar.appendChild(item);
                 });
             } else if (type === 'contacts') {
@@ -547,7 +563,10 @@
                     const item = document.createElement('div');
                     item.className = 'sidebar-item';
                     item.textContent = contact.name;
-                    item.onclick = () => scrollToItem('contact', contact.id);
+                    item.onclick = () => {
+                        openTab('contacts');
+                        setTimeout(() => scrollToItem('contact', contact.id), 100);
+                    };
                     sidebar.appendChild(item);
                 });
             } else if (type === 'processes') {
@@ -555,7 +574,10 @@
                     const item = document.createElement('div');
                     item.className = 'sidebar-item';
                     item.textContent = process.title;
-                    item.onclick = () => scrollToItem('process', process.id);
+                    item.onclick = () => {
+                        openTab('processes');
+                        setTimeout(() => scrollToItem('process', process.id), 100);
+                    };
                     sidebar.appendChild(item);
                 });
             }
@@ -573,12 +595,17 @@
         // Subheading functions
         function renderSubheadings(type) {
             const container = document.getElementById(`${type}Subheadings`);
+            const listContainer = type === 'task' ? document.getElementById('activeList') : 
+                               type === 'contact' ? document.getElementById('contactsList') : 
+                               document.getElementById('processesList');
             const subheadings = type === 'task' ? taskSubheadings : 
                               type === 'contact' ? contactSubheadings : processSubheadings;
             
             container.innerHTML = '';
+            listContainer.innerHTML = '';
             
             subheadings.forEach((subheading, index) => {
+                // Add subheading to management area
                 const subheadingElement = document.createElement('div');
                 subheadingElement.className = 'subheading';
                 
@@ -608,8 +635,35 @@
                 
                 container.appendChild(subheadingElement);
                 
-                // Render items for this subheading
-                renderItemsForSubheading(type, subheading);
+                // Render items for this subheading in the list container
+                renderItemsForSubheading(type, subheading, listContainer);
+            });
+        }
+
+        function renderItemsForSubheading(type, subheading, container) {
+            let items = [];
+            if (type === 'task') {
+                items = tasks.filter(t => !t.completed && t.subheading === subheading);
+            } else if (type === 'contact') {
+                items = contacts.filter(c => c.subheading === subheading);
+            } else if (type === 'process') {
+                items = processes.filter(p => p.subheading === subheading);
+            }
+            
+            if (items.length === 0) return;
+            
+            // Add subheading label
+            const subheadingLabel = document.createElement('div');
+            subheadingLabel.className = 'subheading';
+            subheadingLabel.textContent = subheading;
+            container.appendChild(subheadingLabel);
+            
+            // Add items
+            items.forEach(item => {
+                const element = type === 'task' ? createTaskElement(item) : 
+                              type === 'contact' ? createContactElement(item) : 
+                              createProcessElement(item);
+                container.appendChild(element);
             });
         }
 
@@ -617,9 +671,36 @@
             const subheadings = type === 'task' ? taskSubheadings : 
                               type === 'contact' ? contactSubheadings : processSubheadings;
             
+            const oldValue = subheadings[index];
             subheadings[index] = value;
+            
+            // Update all items with the old subheading
+            if (type === 'task') {
+                tasks.forEach(task => {
+                    if (task.subheading === oldValue) {
+                        task.subheading = value;
+                    }
+                });
+                saveTasks();
+            } else if (type === 'contact') {
+                contacts.forEach(contact => {
+                    if (contact.subheading === oldValue) {
+                        contact.subheading = value;
+                    }
+                });
+                saveContacts();
+            } else if (type === 'process') {
+                processes.forEach(process => {
+                    if (process.subheading === oldValue) {
+                        process.subheading = value;
+                    }
+                });
+                saveProcesses();
+            }
+            
             saveSubheadings(type);
             renderSubheadings(type);
+            updateSidebar(type);
         }
 
         function addSubheading(type, index) {
@@ -638,23 +719,24 @@
             if (subheadings.length <= 1) return;
             
             // Move items from this subheading to the first subheading
+            const subheadingToRemove = subheadings[index];
             if (type === 'task') {
                 tasks.forEach(task => {
-                    if (task.subheading === subheadings[index]) {
+                    if (task.subheading === subheadingToRemove) {
                         task.subheading = subheadings[0];
                     }
                 });
                 saveTasks();
             } else if (type === 'contact') {
                 contacts.forEach(contact => {
-                    if (contact.subheading === subheadings[index]) {
+                    if (contact.subheading === subheadingToRemove) {
                         contact.subheading = subheadings[0];
                     }
                 });
                 saveContacts();
             } else if (type === 'process') {
                 processes.forEach(process => {
-                    if (process.subheading === subheadings[index]) {
+                    if (process.subheading === subheadingToRemove) {
                         process.subheading = subheadings[0];
                     }
                 });
@@ -664,6 +746,7 @@
             subheadings.splice(index, 1);
             saveSubheadings(type);
             renderSubheadings(type);
+            updateSidebar(type);
         }
 
         function saveSubheadings(type) {
@@ -674,28 +757,6 @@
             } else if (type === 'process') {
                 localStorage.setItem('processSubheadings', JSON.stringify(processSubheadings));
             }
-        }
-
-        function renderItemsForSubheading(type, subheading) {
-            const container = document.getElementById(`${type === 'task' ? 'active' : type === 'contact' ? 'contacts' : 'processes'}List`);
-            
-            let items = [];
-            if (type === 'task') {
-                items = tasks.filter(t => !t.completed && t.subheading === subheading);
-            } else if (type === 'contact') {
-                items = contacts.filter(c => c.subheading === subheading);
-            } else if (type === 'process') {
-                items = processes.filter(p => p.subheading === subheading);
-            }
-            
-            if (items.length === 0) return;
-            
-            items.forEach(item => {
-                const element = type === 'task' ? createTaskElement(item) : 
-                              type === 'contact' ? createContactElement(item) : 
-                              createProcessElement(item);
-                container.appendChild(element);
-            });
         }
 
         // Categories
@@ -765,10 +826,7 @@
         }
 
         function renderTasks() {
-            const activeList = document.getElementById('activeList');
             const doneList = document.getElementById('doneList');
-            
-            activeList.innerHTML = '';
             doneList.innerHTML = '';
 
             // Render active tasks under their subheadings
@@ -954,9 +1012,6 @@
         }
 
         function renderContacts(filteredContacts = contacts) {
-            const contactsList = document.getElementById('contactsList');
-            contactsList.innerHTML = '';
-            
             // Render contacts under their subheadings
             renderSubheadings('contact');
         }
@@ -1042,9 +1097,6 @@
         }
 
         function renderProcesses(filteredProcesses = processes) {
-            const processesList = document.getElementById('processesList');
-            processesList.innerHTML = '';
-            
             // Render processes under their subheadings
             renderSubheadings('process');
         }
@@ -1140,6 +1192,9 @@
                 saveTasks();
                 if (field === 'subheading') {
                     renderTasks();
+                    updateSidebar('tasks');
+                }
+                if (field === 'title') {
                     updateSidebar('tasks');
                 }
             }
@@ -1296,6 +1351,9 @@
             document.getElementById('tasks-sidebar').style.display = 'block';
             document.querySelector('.sidebar-header').querySelector('i').classList.add('fa-chevron-up');
             updateSidebar('tasks');
+            
+            // Open tasks tab by default
+            openTab('tasks');
         };
     </script>
 </body>
