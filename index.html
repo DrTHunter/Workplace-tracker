@@ -20,8 +20,8 @@
         }
 
         .sidebar {
-            width: 150px;
-            background-color: #000;
+            width: 80px;
+            background-color: #2d2d2d;
             color: white;
             padding: 10px 5px;
             border-radius: 10px 0 0 10px;
@@ -29,39 +29,34 @@
             height: calc(100vh - 20px);
             overflow-y: auto;
             font-size: 12px;
-        }
-
-        .sidebar-header {
-            padding: 8px 5px;
-            font-weight: bold;
-            cursor: pointer;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            margin-bottom: 5px;
-        }
-
-        .sidebar-header i {
-            margin-right: 5px;
-            font-size: 10px;
-        }
-
-        .sidebar-content {
-            padding-left: 15px;
-            display: none;
         }
 
         .sidebar-item {
-            padding: 6px 5px;
+            padding: 10px 5px;
             cursor: pointer;
             border-radius: 4px;
-            margin-bottom: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            margin-bottom: 10px;
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .sidebar-item i {
+            font-size: 20px;
+            margin-bottom: 5px;
         }
 
         .sidebar-item:hover {
-            background-color: #333;
+            background-color: #3d3d3d;
+        }
+
+        .sidebar-item.active {
+            background-color: #1a73e8;
         }
 
         .container {
@@ -119,6 +114,15 @@
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 10px;
             margin-bottom: 15px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .input-section.collapsed {
+            max-height: 0;
+            margin-bottom: 0;
+            opacity: 0;
+            visibility: hidden;
         }
 
         .input-group {
@@ -354,6 +358,18 @@
             background: white;
         }
 
+        .toggle-inputs-btn {
+            margin: 10px 0;
+            padding: 5px 10px;
+            font-size: 12px;
+            background-color: #6c757d;
+        }
+
+        .reset-btn {
+            background-color: #dc3545;
+            margin-top: 15px;
+        }
+
         @media (max-width: 768px) {
             body {
                 flex-direction: column;
@@ -364,6 +380,14 @@
                 height: auto;
                 margin-bottom: 5px;
                 border-radius: 10px;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-around;
+            }
+            
+            .sidebar-item {
+                width: auto;
+                padding: 5px 10px;
             }
             
             .container {
@@ -394,23 +418,18 @@
 </head>
 <body>
     <div class="sidebar">
-        <div class="sidebar-header" onclick="toggleSidebar('tasks')">
-            <i class="fas fa-chevron-down"></i>
-            <span>Active Tasks</span>
+        <div class="sidebar-item active" onclick="openTab('tasks')">
+            <i class="fas fa-tasks"></i>
+            <span>Tasks</span>
         </div>
-        <div class="sidebar-content" id="tasks-sidebar"></div>
-        
-        <div class="sidebar-header" onclick="toggleSidebar('contacts')">
-            <i class="fas fa-chevron-down"></i>
+        <div class="sidebar-item" onclick="openTab('contacts')">
+            <i class="fas fa-address-book"></i>
             <span>Contacts</span>
         </div>
-        <div class="sidebar-content" id="contacts-sidebar"></div>
-        
-        <div class="sidebar-header" onclick="toggleSidebar('processes')">
-            <i class="fas fa-chevron-down"></i>
+        <div class="sidebar-item" onclick="openTab('processes')">
+            <i class="fas fa-project-diagram"></i>
             <span>Processes</span>
         </div>
-        <div class="sidebar-content" id="processes-sidebar"></div>
     </div>
 
     <div class="container">
@@ -422,14 +441,17 @@
 
         <!-- Tasks Tab -->
         <div id="tasks" class="tab-content active">
-            <div class="category-management">
-                <select id="taskCategory">
-                    <option value="">Select Category</option>
-                </select>
-                <input type="text" id="newCategory" placeholder="New category">
-                <button onclick="addCategory()">Add</button>
-            </div>
+            <button class="toggle-inputs-btn" onclick="toggleInputs('tasks')">
+                <i class="fas fa-chevron-down"></i> Toggle Task Inputs
+            </button>
             <div class="input-section">
+                <div class="category-management">
+                    <select id="taskCategory">
+                        <option value="">Select Category</option>
+                    </select>
+                    <input type="text" id="newCategory" placeholder="New category">
+                    <button onclick="addCategory()">Add</button>
+                </div>
                 <div class="input-group">
                     <input type="text" id="taskTitle" placeholder="Task title">
                 </div>
@@ -452,10 +474,10 @@
                     </div>
                 </div>
                 <button onclick="addTask()">Add Task</button>
-            </div>
-            
-            <div class="notes-container">
-                <textarea id="taskNotes" class="large-notes" placeholder="Notes..."></textarea>
+                
+                <div class="notes-container">
+                    <textarea id="taskNotes" class="large-notes" placeholder="Notes..."></textarea>
+                </div>
             </div>
 
             <div class="task-list">
@@ -467,6 +489,9 @@
 
         <!-- Contacts Tab -->
         <div id="contacts" class="tab-content">
+            <button class="toggle-inputs-btn" onclick="toggleInputs('contacts')">
+                <i class="fas fa-chevron-down"></i> Toggle Contact Inputs
+            </button>
             <input type="text" class="search-bar" id="contactSearch" placeholder="Search contacts..." oninput="searchContacts()">
             <div class="input-section">
                 <input type="text" id="contactName" placeholder="Name">
@@ -474,10 +499,10 @@
                 <input type="tel" id="contactPhone" placeholder="Phone">
                 <input type="text" id="contactDepartment" placeholder="Department">
                 <button onclick="addContact()">Add Contact</button>
-            </div>
-            
-            <div class="notes-container">
-                <textarea id="contactNotes" class="large-notes" placeholder="Notes..."></textarea>
+                
+                <div class="notes-container">
+                    <textarea id="contactNotes" class="large-notes" placeholder="Notes..."></textarea>
+                </div>
             </div>
             
             <div id="contactSubheadings"></div>
@@ -486,15 +511,22 @@
 
         <!-- Processes Tab -->
         <div id="processes" class="tab-content">
+            <button class="toggle-inputs-btn" onclick="toggleInputs('processes')">
+                <i class="fas fa-chevron-down"></i> Toggle Process Inputs
+            </button>
             <input type="text" class="search-bar" id="processSearch" placeholder="Search processes..." oninput="searchProcesses()">
             <div class="input-section">
                 <input type="text" id="processTitle" placeholder="Process title">
                 <button onclick="addProcess()">Add Process</button>
+                
+                <div class="notes-container">
+                    <textarea id="processSteps" class="large-notes" placeholder="Step-by-step instructions..."></textarea>
+                </div>
             </div>
             
-            <div class="notes-container">
-                <textarea id="processSteps" class="large-notes" placeholder="Step-by-step instructions..."></textarea>
-            </div>
+            <button class="reset-btn" onclick="resetAllData()">
+                <i class="fas fa-trash"></i> Reset All Data
+            </button>
             
             <div id="processSubheadings"></div>
             <div id="processesList"></div>
@@ -516,80 +548,62 @@
         function openTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            
             document.getElementById(tabName).classList.add('active');
             event.currentTarget.classList.add('active');
             
-            // Update sidebar for the active tab
-            updateSidebar(tabName);
+            // Highlight the corresponding sidebar item
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            if (tabName === 'tasks') sidebarItems[0].classList.add('active');
+            else if (tabName === 'contacts') sidebarItems[1].classList.add('active');
+            else if (tabName === 'processes') sidebarItems[2].classList.add('active');
         }
 
-        // Sidebar functions
-        function toggleSidebar(type) {
-            const content = document.getElementById(`${type}-sidebar`);
-            const icon = event.currentTarget.querySelector('i');
+        // Toggle input sections
+        function toggleInputs(tab) {
+            const inputSection = document.querySelector(`#${tab} .input-section`);
+            const toggleBtn = document.querySelector(`#${tab} .toggle-inputs-btn i`);
             
-            if (content.style.display === 'none' || !content.style.display) {
-                content.style.display = 'block';
-                icon.classList.remove('fa-chevron-down');
-                icon.classList.add('fa-chevron-up');
-                updateSidebar(type);
+            inputSection.classList.toggle('collapsed');
+            
+            if (inputSection.classList.contains('collapsed')) {
+                toggleBtn.classList.remove('fa-chevron-down');
+                toggleBtn.classList.add('fa-chevron-up');
             } else {
-                content.style.display = 'none';
-                icon.classList.remove('fa-chevron-up');
-                icon.classList.add('fa-chevron-down');
+                toggleBtn.classList.remove('fa-chevron-up');
+                toggleBtn.classList.add('fa-chevron-down');
             }
         }
 
-        function updateSidebar(type) {
-            const sidebar = document.getElementById(`${type}-sidebar`);
-            if (!sidebar) return;
-            
-            sidebar.innerHTML = '';
-            
-            if (type === 'tasks') {
-                const activeTasks = tasks.filter(t => !t.completed);
-                activeTasks.forEach(task => {
-                    const item = document.createElement('div');
-                    item.className = 'sidebar-item';
-                    item.textContent = task.title;
-                    item.onclick = () => {
-                        openTab('tasks');
-                        setTimeout(() => scrollToItem('task', task.id), 100);
-                    };
-                    sidebar.appendChild(item);
-                });
-            } else if (type === 'contacts') {
-                contacts.forEach(contact => {
-                    const item = document.createElement('div');
-                    item.className = 'sidebar-item';
-                    item.textContent = contact.name;
-                    item.onclick = () => {
-                        openTab('contacts');
-                        setTimeout(() => scrollToItem('contact', contact.id), 100);
-                    };
-                    sidebar.appendChild(item);
-                });
-            } else if (type === 'processes') {
-                processes.forEach(process => {
-                    const item = document.createElement('div');
-                    item.className = 'sidebar-item';
-                    item.textContent = process.title;
-                    item.onclick = () => {
-                        openTab('processes');
-                        setTimeout(() => scrollToItem('process', process.id), 100);
-                    };
-                    sidebar.appendChild(item);
-                });
+        // Reset all data
+        function resetAllData() {
+            if (confirm('Are you sure you want to delete ALL data? This cannot be undone.')) {
+                localStorage.clear();
+                tasks = [];
+                contacts = [];
+                processes = [];
+                categories = ['Meeting', 'Development', 'Research', 'Administration'];
+                taskSubheadings = ['General'];
+                contactSubheadings = ['General'];
+                processSubheadings = ['General'];
+                
+                saveAllData();
+                initCategories();
+                renderTasks();
+                renderContacts();
+                renderProcesses();
             }
         }
 
-        function scrollToItem(type, id) {
-            const element = document.querySelector(`.${type}-item[data-id="${id}"]`);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                element.style.animation = 'highlight 1s';
-                setTimeout(() => element.style.animation = '', 1000);
-            }
+        function saveAllData() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            localStorage.setItem('contacts', JSON.stringify(contacts));
+            localStorage.setItem('processes', JSON.stringify(processes));
+            localStorage.setItem('categories', JSON.stringify(categories));
+            localStorage.setItem('taskSubheadings', JSON.stringify(taskSubheadings));
+            localStorage.setItem('contactSubheadings', JSON.stringify(contactSubheadings));
+            localStorage.setItem('processSubheadings', JSON.stringify(processSubheadings));
         }
 
         // Subheading functions
@@ -700,7 +714,6 @@
             
             saveSubheadings(type);
             renderSubheadings(type);
-            updateSidebar(type);
         }
 
         function addSubheading(type, index) {
@@ -746,7 +759,6 @@
             subheadings.splice(index, 1);
             saveSubheadings(type);
             renderSubheadings(type);
-            updateSidebar(type);
         }
 
         function saveSubheadings(type) {
@@ -822,7 +834,6 @@
             saveTasks();
             renderTasks();
             clearTaskForm();
-            updateSidebar('tasks');
         }
 
         function renderTasks() {
@@ -975,7 +986,6 @@
                 task.completed = !task.completed;
                 saveTasks();
                 renderTasks();
-                updateSidebar('tasks');
             }
         }
 
@@ -1008,7 +1018,6 @@
             saveContacts();
             renderContacts();
             clearContactForm();
-            updateSidebar('contacts');
         }
 
         function renderContacts(filteredContacts = contacts) {
@@ -1093,7 +1102,6 @@
             saveProcesses();
             renderProcesses();
             clearProcessForm();
-            updateSidebar('processes');
         }
 
         function renderProcesses(filteredProcesses = processes) {
@@ -1168,21 +1176,18 @@
             tasks = tasks.filter(t => t.id !== id);
             saveTasks();
             renderTasks();
-            updateSidebar('tasks');
         }
 
         function deleteContact(id) {
             contacts = contacts.filter(c => c.id !== id);
             saveContacts();
             renderContacts();
-            updateSidebar('contacts');
         }
 
         function deleteProcess(id) {
             processes = processes.filter(p => p.id !== id);
             saveProcesses();
             renderProcesses();
-            updateSidebar('processes');
         }
 
         function updateTaskField(id, field, value) {
@@ -1192,10 +1197,6 @@
                 saveTasks();
                 if (field === 'subheading') {
                     renderTasks();
-                    updateSidebar('tasks');
-                }
-                if (field === 'title') {
-                    updateSidebar('tasks');
                 }
             }
         }
@@ -1207,10 +1208,6 @@
                 saveContacts();
                 if (field === 'subheading') {
                     renderContacts();
-                    updateSidebar('contacts');
-                }
-                if (field === 'name') {
-                    updateSidebar('contacts');
                 }
             }
         }
@@ -1223,10 +1220,6 @@
                 saveProcesses();
                 if (field === 'subheading') {
                     renderProcesses();
-                    updateSidebar('processes');
-                }
-                if (field === 'title') {
-                    updateSidebar('processes');
                 }
             }
         }
@@ -1346,11 +1339,6 @@
             renderTasks();
             renderContacts();
             renderProcesses();
-            
-            // Initialize sidebar with tasks expanded
-            document.getElementById('tasks-sidebar').style.display = 'block';
-            document.querySelector('.sidebar-header').querySelector('i').classList.add('fa-chevron-up');
-            updateSidebar('tasks');
             
             // Open tasks tab by default
             openTab('tasks');
