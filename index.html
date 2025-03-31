@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Work Organizer</title>
+    <title>Work Organizer Pro</title>
     <style>
         * {
             box-sizing: border-box;
@@ -74,7 +74,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: filter 0.3s;
         }
 
         button:hover {
@@ -88,7 +88,7 @@
             margin-bottom: 20px;
         }
 
-        .task-item, .contact-item {
+        .task-item, .contact-item, .process-item {
             padding: 15px;
             background-color: white;
             margin-bottom: 10px;
@@ -118,6 +118,29 @@
             color: #666;
         }
 
+        .notes-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            cursor: pointer;
+            color: #1a73e8;
+        }
+
+        .notes-header:hover {
+            text-decoration: underline;
+        }
+
+        .notes-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .notes-content.expanded {
+            max-height: 500px;
+        }
+
         .contact-item {
             display: flex;
             flex-direction: column;
@@ -130,9 +153,9 @@
             gap: 15px;
         }
 
-        .contact-notes {
+        .contact-notes, .process-content {
             width: 100%;
-            min-height: 80px;
+            min-height: 100px;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
@@ -149,6 +172,12 @@
             border-bottom: 2px solid #ddd;
             padding-bottom: 10px;
         }
+
+        .process-steps {
+            margin-left: 20px;
+            padding-left: 20px;
+            border-left: 2px solid #ddd;
+        }
     </style>
 </head>
 <body>
@@ -156,6 +185,7 @@
         <div class="tabs">
             <button class="tab-button active" onclick="openTab('tasks')">Tasks</button>
             <button class="tab-button" onclick="openTab('contacts')">Contacts</button>
+            <button class="tab-button" onclick="openTab('processes')">Processes</button>
         </div>
 
         <!-- Tasks Tab -->
@@ -206,6 +236,17 @@
 
             <div id="contactsList"></div>
         </div>
+
+        <!-- Processes Tab -->
+        <div id="processes" class="tab-content">
+            <div class="input-section">
+                <input type="text" id="processTitle" placeholder="Process title">
+                <textarea id="processSteps" placeholder="Step-by-step instructions..."></textarea>
+                <button onclick="addProcess()">Add Process</button>
+            </div>
+
+            <div id="processesList"></div>
+        </div>
     </div>
 
     <script>
@@ -220,6 +261,7 @@
         // Task Management
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
         let contacts = JSON.parse(localStorage.getItem('contacts')) || [];
+        let processes = JSON.parse(localStorage.getItem('processes')) || [];
         let departments = new Set();
 
         function addTask() {
@@ -288,7 +330,10 @@
                         </select>
                     </span>
                 </div>
-                <div class="task-notes">
+                <div class="notes-header" onclick="toggleNotes(this)">
+                    📝 Notes (${task.notes.length ? task.notes.split(/\s+/).length + ' words' : 'empty'})
+                </div>
+                <div class="notes-content">
                     <textarea class="editable" oninput="updateTaskField(${task.id}, 'notes', this.value)"
                               style="width:100%; margin-top:10px">${task.notes}</textarea>
                 </div>
@@ -296,6 +341,11 @@
             `;
 
             container.appendChild(taskElement);
+        }
+
+        function toggleNotes(header) {
+            const content = header.nextElementSibling;
+            content.classList.toggle('expanded');
         }
 
         function toggleTask(id) {
@@ -364,9 +414,14 @@
                                oninput="updateContactField(${contact.id}, 'department', this.value)">
                         <button class="delete-btn" onclick="deleteContact(${contact.id})">Delete</button>
                     </div>
-                    <textarea class="contact-notes editable" 
-                              oninput="updateContactField(${contact.id}, 'notes', this.value)"
-                              placeholder="Add notes...">${contact.notes}</textarea>
+                    <div class="notes-header" onclick="toggleNotes(this)">
+                        📝 Contact Notes (${contact.notes.length ? contact.notes.split(/\s+/).length + ' words' : 'empty'})
+                    </div>
+                    <div class="notes-content">
+                        <textarea class="contact-notes editable" 
+                                  oninput="updateContactField(${contact.id}, 'notes', this.value)"
+                                  placeholder="Add notes...">${contact.notes}</textarea>
+                    </div>
                 `;
                 contactsList.appendChild(contactDiv);
             });
@@ -385,6 +440,75 @@
             updateDepartmentFilter();
         }
 
+        // Process Management
+        function addProcess() {
+            const process = {
+                id: Date.now(),
+                title: document.getElementById('processTitle').value.trim(),
+                steps: document.getElementById('processSteps').value,
+                created: new Date().toISOString(),
+                updated: new Date().toISOString()
+            };
+
+            if (!process.title) return;
+
+            processes.push(process);
+            saveProcesses();
+            renderProcesses();
+            clearProcessForm();
+        }
+
+        function renderProcesses() {
+            const processesList = document.getElementById('processesList');
+            processesList.innerHTML = '';
+
+            processes.forEach(process => {
+                const processDiv = document.createElement('div');
+                processDiv.className = 'process-item';
+                processDiv.innerHTML = `
+                    <div class="process-header">
+                        <span class="editable" contenteditable="true" 
+                              oninput="updateProcessField(${process.id}, 'title', this.innerText)">
+                            ${process.title}
+                        </span>
+                        <button class="delete-btn" onclick="deleteProcess(${process.id})">Delete</button>
+                    </div>
+                    <div class="notes-header" onclick="toggleNotes(this)">
+                        📋 Process Steps (${process.steps.split('\n').filter(Boolean).length} steps)
+                    </div>
+                    <div class="notes-content process-steps">
+                        <textarea class="process-content editable" 
+                                  oninput="updateProcessField(${process.id}, 'steps', this.value)"
+                                  placeholder="Add steps...">${process.steps}</textarea>
+                    </div>
+                    <div class="process-meta">
+                        <small>Created: ${new Date(process.created).toLocaleDateString()}</small>
+                        <small>Updated: ${new Date(process.updated).toLocaleDateString()}</small>
+                    </div>
+                `;
+                processesList.appendChild(processDiv);
+            });
+        }
+
+        function updateProcessField(id, field, value) {
+            const process = processes.find(p => p.id === id);
+            process[field] = value;
+            process.updated = new Date().toISOString();
+            saveProcesses();
+        }
+
+        function deleteProcess(id) {
+            processes = processes.filter(p => p.id !== id);
+            saveProcesses();
+            renderProcesses();
+        }
+
+        function clearProcessForm() {
+            document.getElementById('processTitle').value = '';
+            document.getElementById('processSteps').value = '';
+        }
+
+        // Common Functions
         function sortContacts() {
             const department = document.getElementById('sortDepartment').value;
             const filtered = department ? 
@@ -394,7 +518,6 @@
             const contactsList = document.getElementById('contactsList');
             contactsList.innerHTML = '';
             filtered.forEach(contact => {
-                // Re-create contact items for filtered results
                 const contactDiv = document.createElement('div');
                 contactDiv.className = 'contact-item';
                 contactDiv.innerHTML = `
@@ -438,10 +561,15 @@
             localStorage.setItem('contacts', JSON.stringify(contacts));
         }
 
+        function saveProcesses() {
+            localStorage.setItem('processes', JSON.stringify(processes));
+        }
+
         // Initial Load
         window.onload = () => {
             renderTasks();
             renderContacts();
+            renderProcesses();
             updateDepartmentFilter();
         };
     </script>
