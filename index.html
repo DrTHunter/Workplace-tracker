@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Work Organizer Pro+</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             box-sizing: border-box;
@@ -40,6 +41,13 @@
             cursor: pointer;
             transition: background-color 0.3s;
             font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-button i {
+            font-size: 16px;
         }
 
         .tab-button.active {
@@ -60,6 +68,17 @@
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 10px;
             margin-bottom: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-size: 12px;
+            margin-bottom: 4px;
+            color: #555;
         }
 
         input, select, textarea {
@@ -198,6 +217,51 @@
             font-size: 14px;
         }
 
+        /* Star rating system */
+        .star-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .star-rating i {
+            color: #ddd;
+            cursor: pointer;
+            font-size: 18px;
+            transition: color 0.2s;
+        }
+
+        .star-rating i.active {
+            color: #ffc107;
+        }
+
+        /* Timeline progress bar */
+        .timeline-container {
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .timeline-bar {
+            height: 6px;
+            background-color: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .timeline-progress {
+            height: 100%;
+            background-color: #1a73e8;
+            border-radius: 3px;
+        }
+
+        .timeline-dates {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #666;
+        }
+
         @media (max-width: 768px) {
             .container {
                 border-radius: 0;
@@ -227,9 +291,9 @@
 <body>
     <div class="container">
         <div class="tabs">
-            <button class="tab-button active" onclick="openTab('tasks')">Tasks</button>
-            <button class="tab-button" onclick="openTab('contacts')">Contacts</button>
-            <button class="tab-button" onclick="openTab('processes')">Processes</button>
+            <button class="tab-button active" onclick="openTab('tasks')"><i class="fas fa-tasks"></i> Tasks</button>
+            <button class="tab-button" onclick="openTab('contacts')"><i class="fas fa-address-book"></i> Contacts</button>
+            <button class="tab-button" onclick="openTab('processes')"><i class="fas fa-project-diagram"></i> Processes</button>
         </div>
 
         <!-- Tasks Tab -->
@@ -242,13 +306,23 @@
                 <button onclick="addCategory()">Add</button>
             </div>
             <div class="input-section">
-                <input type="text" id="taskTitle" placeholder="Task title">
-                <input type="date" id="taskDue">
-                <select id="taskPriority">
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                </select>
+                <div class="input-group">
+                    <input type="text" id="taskTitle" placeholder="Task title">
+                </div>
+                <div class="input-group">
+                    <label for="taskDue">Due Date</label>
+                    <input type="date" id="taskDue">
+                </div>
+                <div class="input-group">
+                    <label>Priority</label>
+                    <div class="star-rating" id="priorityStars">
+                        <i class="fas fa-star" data-value="1"></i>
+                        <i class="fas fa-star" data-value="2"></i>
+                        <i class="fas fa-star" data-value="3"></i>
+                        <i class="fas fa-star" data-value="4"></i>
+                        <i class="fas fa-star" data-value="5"></i>
+                    </div>
+                </div>
                 <button onclick="addTask()">Add Task</button>
             </div>
             
@@ -307,6 +381,7 @@
         let contacts = JSON.parse(localStorage.getItem('contacts')) || [];
         let processes = JSON.parse(localStorage.getItem('processes')) || [];
         let categories = JSON.parse(localStorage.getItem('categories')) || ['Meeting', 'Development', 'Research', 'Administration'];
+        let selectedPriority = 1;
 
         // Tab Navigation
         function openTab(tabName) {
@@ -333,14 +408,39 @@
             }
         }
 
+        // Star Rating System
+        function setupStarRating() {
+            const stars = document.querySelectorAll('#priorityStars i');
+            stars.forEach(star => {
+                star.addEventListener('click', () => {
+                    const value = parseInt(star.getAttribute('data-value'));
+                    selectedPriority = value;
+                    
+                    // Update stars display
+                    stars.forEach((s, index) => {
+                        if (index < value) {
+                            s.classList.add('active');
+                        } else {
+                            s.classList.remove('active');
+                        }
+                    });
+                });
+            });
+        }
+
         // Task Functions
         function addTask() {
+            const priorityText = 
+                selectedPriority >= 4 ? 'high' : 
+                selectedPriority >= 2 ? 'medium' : 'low';
+
             const task = {
                 id: Date.now(),
                 title: document.getElementById('taskTitle').value.trim(),
                 category: document.getElementById('taskCategory').value,
                 due: document.getElementById('taskDue').value,
-                priority: document.getElementById('taskPriority').value,
+                priority: priorityText,
+                priorityValue: selectedPriority,
                 notes: document.getElementById('taskNotes').value,
                 completed: false,
                 created: new Date().toISOString()
@@ -371,6 +471,31 @@
         function createTaskElement(task) {
             const taskElement = document.createElement('div');
             taskElement.className = `task-item priority-${task.priority} ${task.completed ? 'completed' : ''}`;
+            
+            // Calculate timeline progress if due date exists
+            let timelineHTML = '';
+            if (task.due) {
+                const progress = calculateTimelineProgress(task.created, task.due);
+                timelineHTML = `
+                    <div class="timeline-container">
+                        <div class="timeline-bar">
+                            <div class="timeline-progress" style="width: ${progress.percentage}%"></div>
+                        </div>
+                        <div class="timeline-dates">
+                            <span>${formatDate(task.created)}</span>
+                            <span>${formatDate(task.due)}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Create star rating for priority
+            let starsHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                starsHTML += `<i class="fas fa-star ${i <= task.priorityValue ? 'active' : ''}" 
+                             onclick="updateTaskPriority(${task.id}, ${i})"></i>`;
+            }
+
             taskElement.innerHTML = `
                 <div class="move-buttons">
                     <button onclick="moveTask(${task.id}, 'up')">↑</button>
@@ -390,11 +515,17 @@
                             ${categories.map(opt => `<option ${task.category === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                         </select>
                     </span>
+                    <span>Priority: 
+                        <div class="star-rating">
+                            ${starsHTML}
+                        </div>
+                    </span>
                     <span>Due: 
                         <input type="date" class="editable" value="${task.due}" 
                                onchange="updateTaskField(${task.id}, 'due', this.value)">
                     </span>
                 </div>
+                ${timelineHTML}
                 <div class="notes-header" onclick="toggleNotes(this)">
                     📝 Notes (${task.notes.length ? task.notes.split(/\s+/).length + ' words' : 'empty'})
                 </div>
@@ -405,6 +536,49 @@
                 <button class="delete-btn" onclick="confirmDelete('task', ${task.id})">Delete</button>
             `;
             return taskElement;
+        }
+
+        function calculateTimelineProgress(createdDate, dueDate) {
+            const now = new Date();
+            const start = new Date(createdDate);
+            const end = new Date(dueDate);
+            
+            // Ensure dates are valid
+            if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                return { percentage: 0, status: 'invalid' };
+            }
+            
+            const total = end - start;
+            const elapsed = now - start;
+            
+            let percentage = (elapsed / total) * 100;
+            
+            // Clamp between 0 and 100
+            percentage = Math.max(0, Math.min(100, percentage));
+            
+            let status = 'on-track';
+            if (now > end) {
+                status = 'overdue';
+            } else if (percentage > 80) {
+                status = 'nearing-deadline';
+            }
+            
+            return { percentage, status };
+        }
+
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString(undefined, options);
+        }
+
+        function updateTaskPriority(taskId, newPriority) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.priorityValue = newPriority;
+                task.priority = newPriority >= 4 ? 'high' : newPriority >= 2 ? 'medium' : 'low';
+                saveTasks();
+                renderTasks();
+            }
         }
 
         function toggleTask(id) {
@@ -633,6 +807,16 @@
             document.getElementById('taskTitle').value = '';
             document.getElementById('taskDue').value = '';
             document.getElementById('taskNotes').value = '';
+            // Reset star rating
+            selectedPriority = 1;
+            const stars = document.querySelectorAll('#priorityStars i');
+            stars.forEach((star, index) => {
+                if (index === 0) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
         }
 
         function clearContactForm() {
@@ -656,6 +840,7 @@
         // Initialization
         window.onload = () => {
             initCategories();
+            setupStarRating();
             renderTasks();
             renderContacts();
             renderProcesses();
