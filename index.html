@@ -246,6 +246,7 @@
             font-size: 0.85em;
             color: #666;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .task-meta-item {
@@ -256,7 +257,7 @@
 
         .current-step {
             margin-top: 5px;
-            width: 100%;
+            width: 50%;
         }
 
         .notes-header {
@@ -289,11 +290,17 @@
             font-size: 13px;
         }
 
-        .delete-btn {
-            background-color: #dc3545;
+        .task-controls {
             position: absolute;
             top: 12px;
             right: 12px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
             padding: 6px 12px;
         }
 
@@ -352,8 +359,6 @@
         }
 
         .timeline-container {
-            margin-top: 10px;
-            width: 100%;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -361,11 +366,11 @@
 
         .timeline-bar {
             height: 6px;
+            width: 100px;
             background-color: #e0e0e0;
             border-radius: 3px;
             overflow: hidden;
             margin-bottom: 5px;
-            flex-grow: 1;
         }
 
         .timeline-progress {
@@ -375,8 +380,6 @@
         }
 
         .timeline-dates {
-            display: flex;
-            justify-content: space-between;
             font-size: 11px;
             color: #666;
         }
@@ -439,8 +442,23 @@
             gap: 5px;
             margin: 10px 0;
             height: 30px;
-            border-top: 1px solid #ddd;
-            padding-top: 15px;
+            background-color: #e0e0e0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            align-items: center;
+        }
+
+        .new-subheading-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 2px 5px;
+            height: 20px;
+        }
+
+        .new-subheading-input:focus {
+            outline: none;
+            background: white;
         }
 
         .collapsible-content {
@@ -454,18 +472,24 @@
         }
 
         .complete-checkbox {
-            margin-top: 10px;
             display: flex;
             align-items: center;
             gap: 5px;
         }
 
+        .contact-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .bookmark-flag {
-            position: absolute;
-            top: 12px;
-            right: 70px;
             color: #ffc107;
             cursor: pointer;
+        }
+
+        .bookmark-flag.active {
+            color: #ffc107;
         }
 
         @media (max-width: 768px) {
@@ -589,8 +613,8 @@
             </div>
 
             <div class="new-subheading-bar">
-                <input type="text" id="newTaskSubheading" placeholder="New subheading name">
-                <button onclick="addSubheading('task')">Add Subheading</button>
+                <input type="text" id="newTaskSubheading" class="new-subheading-input" placeholder="New subheading name">
+                <button onclick="addSubheading('task')">Add</button>
             </div>
 
             <div class="task-list" id="tasksList">
@@ -628,8 +652,8 @@
             </div>
             
             <div class="new-subheading-bar">
-                <input type="text" id="newContactSubheading" placeholder="New subheading name">
-                <button onclick="addSubheading('contact')">Add Subheading</button>
+                <input type="text" id="newContactSubheading" class="new-subheading-input" placeholder="New subheading name">
+                <button onclick="addSubheading('contact')">Add</button>
             </div>
             
             <div id="contactsList"></div>
@@ -653,8 +677,8 @@
             </div>
             
             <div class="new-subheading-bar">
-                <input type="text" id="newProcessSubheading" placeholder="New subheading name">
-                <button onclick="addSubheading('process')">Add Subheading</button>
+                <input type="text" id="newProcessSubheading" class="new-subheading-input" placeholder="New subheading name">
+                <button onclick="addSubheading('process')">Add</button>
             </div>
             
             <button class="reset-btn" onclick="resetAllData()">
@@ -1155,11 +1179,15 @@
                           oninput="updateTaskField(${task.id}, 'title', this.innerText)">
                         ${task.title}
                     </span>
-                </div>
-                <div class="complete-checkbox">
-                    <input type="checkbox" id="complete-${task.id}" ${task.completed ? 'checked' : ''} 
-                           onchange="toggleTask(${task.id})">
-                    <label for="complete-${task.id}">Complete</label>
+                    <div class="task-controls">
+                        <div class="complete-checkbox">
+                            <input type="checkbox" id="complete-${task.id}" ${task.completed ? 'checked' : ''} 
+                                   onchange="toggleTask(${task.id})">
+                        </div>
+                        <button class="delete-btn" onclick="confirmDelete('task', ${task.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
                 <input type="text" class="current-step" placeholder="Current step..." 
                        value="${task.currentStep || ''}" 
@@ -1181,8 +1209,8 @@
                         <input type="date" value="${task.due}" 
                                onchange="updateTaskField(${task.id}, 'due', this.value)">
                     </div>
+                    ${timelineHTML}
                 </div>
-                ${timelineHTML}
                 <div class="notes-header" onclick="toggleNotes(this)">
                     Notes
                 </div>
@@ -1190,7 +1218,6 @@
                     <textarea oninput="updateTaskField(${task.id}, 'notes', this.value)"
                               style="width:100%; min-height: 120px;">${task.notes}</textarea>
                 </div>
-                <button class="delete-btn" onclick="confirmDelete('task', ${task.id})">Delete</button>
                 <div class="move-buttons">
                     <button onclick="moveTask(${task.id}, 'up')">↑</button>
                     <button onclick="moveTask(${task.id}, 'down')">↓</button>
@@ -1315,6 +1342,9 @@
                     </span>
                     <i class="fas fa-bookmark bookmark-flag ${contact.flagged ? 'active' : ''}" 
                        onclick="toggleContactFlag(${contact.id})"></i>
+                    <button class="delete-btn" onclick="confirmDelete('contact', ${contact.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
                 <div class="contact-details">
                     <div>Email: ${contact.email || 'Not specified'}</div>
@@ -1330,7 +1360,6 @@
                         ${contact.notes}
                     </textarea>
                 </div>
-                <button class="delete-btn" onclick="confirmDelete('contact', ${contact.id})">Delete</button>
                 <div class="move-buttons">
                     <button onclick="moveContact(${contact.id}, 'up')">↑</button>
                     <button onclick="moveContact(${contact.id}, 'down')">↓</button>
@@ -1405,6 +1434,9 @@
                           oninput="updateProcessField(${process.id}, 'title', this.innerText)">
                         ${process.title}
                     </span>
+                    <button class="delete-btn" onclick="confirmDelete('process', ${process.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
                 <div class="notes-header" onclick="toggleNotes(this)">
                     Steps
@@ -1415,7 +1447,6 @@
                         ${process.steps}
                     </textarea>
                 </div>
-                <button class="delete-btn" onclick="confirmDelete('process', ${process.id})">Delete</button>
                 <div class="move-buttons">
                     <button onclick="moveProcess(${process.id}, 'up')">↑</button>
                     <button onclick="moveProcess(${process.id}, 'down')">↓</button>
