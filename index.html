@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Work Organizer Pro</title>
+    <title>Work Organizer Pro+</title>
     <style>
         * {
             box-sizing: border-box;
@@ -14,7 +14,7 @@
 
         body {
             background-color: #f5f7fa;
-            padding: 20px;
+            padding: 10px;
         }
 
         .container {
@@ -29,15 +29,17 @@
         .tabs {
             display: flex;
             background-color: #1a73e8;
+            flex-wrap: wrap;
         }
 
         .tab-button {
-            padding: 15px 30px;
+            padding: 12px 20px;
             background: none;
             border: none;
             color: white;
             cursor: pointer;
             transition: background-color 0.3s;
+            font-size: 14px;
         }
 
         .tab-button.active {
@@ -46,7 +48,7 @@
 
         .tab-content {
             display: none;
-            padding: 30px;
+            padding: 15px;
         }
 
         .tab-content.active {
@@ -55,26 +57,27 @@
 
         .input-section {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
         }
 
         input, select, textarea {
-            padding: 10px;
+            padding: 8px;
             border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
+            border-radius: 4px;
+            font-size: 13px;
         }
 
         button {
-            padding: 10px 20px;
+            padding: 8px 15px;
             background-color: #1a73e8;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
             transition: filter 0.3s;
+            font-size: 13px;
         }
 
         button:hover {
@@ -84,16 +87,17 @@
         .task-list {
             background-color: #f8f9fa;
             border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 20px;
+            padding: 10px;
+            margin-bottom: 15px;
         }
 
         .task-item, .contact-item, .process-item {
-            padding: 15px;
+            padding: 12px;
             background-color: white;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 8px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: relative;
         }
 
         .priority-high { border-left: 4px solid #dc3545; }
@@ -112,23 +116,21 @@
 
         .task-meta {
             display: flex;
-            gap: 15px;
-            margin-top: 10px;
-            font-size: 0.9em;
+            gap: 10px;
+            margin-top: 8px;
+            font-size: 0.85em;
             color: #666;
+            flex-wrap: wrap;
         }
 
         .notes-header {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin: 15px 0;
+            gap: 8px;
+            margin: 10px 0;
             cursor: pointer;
             color: #1a73e8;
-        }
-
-        .notes-header:hover {
-            text-decoration: underline;
+            font-size: 0.9em;
         }
 
         .notes-content {
@@ -138,45 +140,74 @@
         }
 
         .notes-content.expanded {
-            max-height: 500px;
-        }
-
-        .contact-item {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .contact-header {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
+            max-height: 1000px;
         }
 
         .contact-notes, .process-content {
             width: 100%;
-            min-height: 100px;
-            padding: 10px;
+            min-height: 80px;
+            padding: 8px;
             border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: 4px;
             resize: vertical;
+            font-size: 13px;
         }
 
         .delete-btn {
             background-color: #dc3545;
+            position: absolute;
+            top: 8px;
+            right: 8px;
         }
 
-        .completed-header {
-            margin-top: 30px;
-            color: #666;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 10px;
+        .move-buttons {
+            position: absolute;
+            top: 8px;
+            right: 80px;
+            display: flex;
+            gap: 5px;
         }
 
-        .process-steps {
-            margin-left: 20px;
-            padding-left: 20px;
-            border-left: 2px solid #ddd;
+        .search-bar {
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .category-management {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 0;
+            }
+            
+            .tab-button {
+                flex: 1;
+                padding: 10px;
+                font-size: 12px;
+            }
+            
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .task-meta {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            button {
+                padding: 6px 12px;
+            }
+            
+            .move-buttons {
+                right: 60px;
+            }
         }
     </style>
 </head>
@@ -190,15 +221,15 @@
 
         <!-- Tasks Tab -->
         <div id="tasks" class="tab-content active">
-            <div class="input-section">
-                <input type="text" id="taskTitle" placeholder="Task title">
+            <div class="category-management">
                 <select id="taskCategory">
                     <option value="">Select Category</option>
-                    <option>Meeting</option>
-                    <option>Development</option>
-                    <option>Research</option>
-                    <option>Administration</option>
                 </select>
+                <input type="text" id="newCategory" placeholder="New category">
+                <button onclick="addCategory()">Add</button>
+            </div>
+            <div class="input-section">
+                <input type="text" id="taskTitle" placeholder="Task title">
                 <input type="date" id="taskDue">
                 <select id="taskPriority">
                     <option value="low">Low</option>
@@ -219,6 +250,7 @@
 
         <!-- Contacts Tab -->
         <div id="contacts" class="tab-content">
+            <input type="text" class="search-bar" id="contactSearch" placeholder="Search contacts..." oninput="searchContacts()">
             <div class="input-section">
                 <input type="text" id="contactName" placeholder="Name">
                 <input type="email" id="contactEmail" placeholder="Email">
@@ -227,24 +259,17 @@
                 <textarea id="contactNotes" placeholder="Notes..."></textarea>
                 <button onclick="addContact()">Add Contact</button>
             </div>
-
-            <div class="filter-section">
-                <select id="sortDepartment" onchange="sortContacts()">
-                    <option value="">All Departments</option>
-                </select>
-            </div>
-
             <div id="contactsList"></div>
         </div>
 
         <!-- Processes Tab -->
         <div id="processes" class="tab-content">
+            <input type="text" class="search-bar" id="processSearch" placeholder="Search processes..." oninput="searchProcesses()">
             <div class="input-section">
                 <input type="text" id="processTitle" placeholder="Process title">
                 <textarea id="processSteps" placeholder="Step-by-step instructions..."></textarea>
                 <button onclick="addProcess()">Add Process</button>
             </div>
-
             <div id="processesList"></div>
         </div>
     </div>
@@ -258,12 +283,29 @@
             event.currentTarget.classList.add('active');
         }
 
-        // Task Management
+        // Data Management
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
         let contacts = JSON.parse(localStorage.getItem('contacts')) || [];
         let processes = JSON.parse(localStorage.getItem('processes')) || [];
-        let departments = new Set();
+        let categories = JSON.parse(localStorage.getItem('categories')) || ['Meeting', 'Development', 'Research', 'Administration'];
+        
+        // Initialize Categories
+        function initCategories() {
+            const select = document.getElementById('taskCategory');
+            select.innerHTML = categories.map(cat => `<option>${cat}</option>`).join('');
+        }
 
+        function addCategory() {
+            const newCat = document.getElementById('newCategory').value.trim();
+            if (newCat && !categories.includes(newCat)) {
+                categories.push(newCat);
+                localStorage.setItem('categories', JSON.stringify(categories));
+                initCategories();
+                document.getElementById('newCategory').value = '';
+            }
+        }
+
+        // Task Management
         function addTask() {
             const task = {
                 id: Date.now(),
@@ -291,17 +333,21 @@
             activeList.innerHTML = '';
             doneList.innerHTML = '';
 
-            const activeTasks = tasks.filter(task => !task.completed);
-            const completedTasks = tasks.filter(task => task.completed);
-
-            activeTasks.forEach(task => createTaskElement(task, activeList));
-            completedTasks.forEach(task => createTaskElement(task, doneList));
+            tasks.forEach((task, index) => {
+                const container = task.completed ? doneList : activeList;
+                const taskElement = createTaskElement(task, index);
+                container.appendChild(taskElement);
+            });
         }
 
-        function createTaskElement(task, container) {
+        function createTaskElement(task, index) {
             const taskElement = document.createElement('div');
             taskElement.className = `task-item priority-${task.priority} ${task.completed ? 'completed' : ''}`;
             taskElement.innerHTML = `
+                <div class="move-buttons">
+                    <button onclick="moveTask(${task.id}, 'up')">↑</button>
+                    <button onclick="moveTask(${task.id}, 'down')">↓</button>
+                </div>
                 <div class="task-header">
                     <input type="checkbox" ${task.completed ? 'checked' : ''} 
                            onchange="toggleTask(${task.id})">
@@ -313,21 +359,12 @@
                 <div class="task-meta">
                     <span>Category: 
                         <select class="editable" onchange="updateTaskField(${task.id}, 'category', this.value)">
-                            ${['', 'Meeting', 'Development', 'Research', 'Administration']
-                                .map(opt => `<option ${task.category === opt ? 'selected' : ''}>${opt}</option>`)
-                                .join('')}
+                            ${categories.map(opt => `<option ${task.category === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                         </select>
                     </span>
                     <span>Due: 
                         <input type="date" class="editable" value="${task.due}" 
                                onchange="updateTaskField(${task.id}, 'due', this.value)">
-                    </span>
-                    <span>Priority: 
-                        <select class="editable" onchange="updateTaskField(${task.id}, 'priority', this.value)">
-                            <option value="low" ${task.priority === 'low' ? 'selected' : ''}>Low</option>
-                            <option value="medium" ${task.priority === 'medium' ? 'selected' : ''}>Medium</option>
-                            <option value="high" ${task.priority === 'high' ? 'selected' : ''}>High</option>
-                        </select>
                     </span>
                 </div>
                 <div class="notes-header" onclick="toggleNotes(this)">
@@ -335,44 +372,23 @@
                 </div>
                 <div class="notes-content">
                     <textarea class="editable" oninput="updateTaskField(${task.id}, 'notes', this.value)"
-                              style="width:100%; margin-top:10px">${task.notes}</textarea>
+                              style="width:100%">${task.notes}</textarea>
                 </div>
-                <button class="delete-btn" onclick="deleteTask(${task.id})">Delete</button>
+                <button class="delete-btn" onclick="confirmDelete('task', ${task.id})">Delete</button>
             `;
 
-            container.appendChild(taskElement);
+            return taskElement;
         }
 
-        function toggleNotes(header) {
-            const content = header.nextElementSibling;
-            content.classList.toggle('expanded');
-        }
-
-        function toggleTask(id) {
-            const task = tasks.find(t => t.id === id);
-            task.completed = !task.completed;
+        function moveTask(id, direction) {
+            const index = tasks.findIndex(t => t.id === id);
+            if (direction === 'up' && index > 0) {
+                [tasks[index], tasks[index - 1]] = [tasks[index - 1], tasks[index]];
+            } else if (direction === 'down' && index < tasks.length - 1) {
+                [tasks[index], tasks[index + 1]] = [tasks[index + 1], tasks[index]];
+            }
             saveTasks();
             renderTasks();
-        }
-
-        function updateTaskField(id, field, value) {
-            const task = tasks.find(t => t.id === id);
-            task[field] = value;
-            saveTasks();
-        }
-
-        function deleteTask(id) {
-            tasks = tasks.filter(t => t.id !== id);
-            saveTasks();
-            renderTasks();
-        }
-
-        function clearTaskForm() {
-            document.getElementById('taskTitle').value = '';
-            document.getElementById('taskCategory').value = '';
-            document.getElementById('taskDue').value = '';
-            document.getElementById('taskPriority').value = 'low';
-            document.getElementById('taskNotes').value = '';
         }
 
         // Contact Management
@@ -392,52 +408,16 @@
             saveContacts();
             renderContacts();
             clearContactForm();
-            updateDepartmentFilter();
         }
 
-        function renderContacts() {
-            const contactsList = document.getElementById('contactsList');
-            contactsList.innerHTML = '';
-
-            contacts.forEach(contact => {
-                const contactDiv = document.createElement('div');
-                contactDiv.className = 'contact-item';
-                contactDiv.innerHTML = `
-                    <div class="contact-header">
-                        <input type="text" class="editable" value="${contact.name}" 
-                               oninput="updateContactField(${contact.id}, 'name', this.value)">
-                        <input type="email" class="editable" value="${contact.email}" 
-                               oninput="updateContactField(${contact.id}, 'email', this.value)">
-                        <input type="tel" class="editable" value="${contact.phone}" 
-                               oninput="updateContactField(${contact.id}, 'phone', this.value)">
-                        <input type="text" class="editable" value="${contact.department}" 
-                               oninput="updateContactField(${contact.id}, 'department', this.value)">
-                        <button class="delete-btn" onclick="deleteContact(${contact.id})">Delete</button>
-                    </div>
-                    <div class="notes-header" onclick="toggleNotes(this)">
-                        📝 Contact Notes (${contact.notes.length ? contact.notes.split(/\s+/).length + ' words' : 'empty'})
-                    </div>
-                    <div class="notes-content">
-                        <textarea class="contact-notes editable" 
-                                  oninput="updateContactField(${contact.id}, 'notes', this.value)"
-                                  placeholder="Add notes...">${contact.notes}</textarea>
-                    </div>
-                `;
-                contactsList.appendChild(contactDiv);
-            });
-        }
-
-        function updateContactField(id, field, value) {
-            const contact = contacts.find(c => c.id === id);
-            contact[field] = value;
-            saveContacts();
-        }
-
-        function deleteContact(id) {
-            contacts = contacts.filter(c => c.id !== id);
-            saveContacts();
-            renderContacts();
-            updateDepartmentFilter();
+        function searchContacts() {
+            const searchTerm = document.getElementById('contactSearch').value.toLowerCase();
+            const filtered = contacts.filter(c => 
+                Object.values(c).some(val => 
+                    String(val).toLowerCase().includes(searchTerm)
+                )
+            );
+            renderContacts(filtered);
         }
 
         // Process Management
@@ -458,119 +438,40 @@
             clearProcessForm();
         }
 
-        function renderProcesses() {
-            const processesList = document.getElementById('processesList');
-            processesList.innerHTML = '';
-
-            processes.forEach(process => {
-                const processDiv = document.createElement('div');
-                processDiv.className = 'process-item';
-                processDiv.innerHTML = `
-                    <div class="process-header">
-                        <span class="editable" contenteditable="true" 
-                              oninput="updateProcessField(${process.id}, 'title', this.innerText)">
-                            ${process.title}
-                        </span>
-                        <button class="delete-btn" onclick="deleteProcess(${process.id})">Delete</button>
-                    </div>
-                    <div class="notes-header" onclick="toggleNotes(this)">
-                        📋 Process Steps (${process.steps.split('\n').filter(Boolean).length} steps)
-                    </div>
-                    <div class="notes-content process-steps">
-                        <textarea class="process-content editable" 
-                                  oninput="updateProcessField(${process.id}, 'steps', this.value)"
-                                  placeholder="Add steps...">${process.steps}</textarea>
-                    </div>
-                    <div class="process-meta">
-                        <small>Created: ${new Date(process.created).toLocaleDateString()}</small>
-                        <small>Updated: ${new Date(process.updated).toLocaleDateString()}</small>
-                    </div>
-                `;
-                processesList.appendChild(processDiv);
-            });
-        }
-
-        function updateProcessField(id, field, value) {
-            const process = processes.find(p => p.id === id);
-            process[field] = value;
-            process.updated = new Date().toISOString();
-            saveProcesses();
-        }
-
-        function deleteProcess(id) {
-            processes = processes.filter(p => p.id !== id);
-            saveProcesses();
-            renderProcesses();
-        }
-
-        function clearProcessForm() {
-            document.getElementById('processTitle').value = '';
-            document.getElementById('processSteps').value = '';
+        function searchProcesses() {
+            const searchTerm = document.getElementById('processSearch').value.toLowerCase();
+            const filtered = processes.filter(p => 
+                p.title.toLowerCase().includes(searchTerm) ||
+                p.steps.toLowerCase().includes(searchTerm)
+            );
+            renderProcesses(filtered);
         }
 
         // Common Functions
-        function sortContacts() {
-            const department = document.getElementById('sortDepartment').value;
-            const filtered = department ? 
-                contacts.filter(c => c.department === department) : 
-                [...contacts];
-            
-            const contactsList = document.getElementById('contactsList');
-            contactsList.innerHTML = '';
-            filtered.forEach(contact => {
-                const contactDiv = document.createElement('div');
-                contactDiv.className = 'contact-item';
-                contactDiv.innerHTML = `
-                    <div class="contact-header">
-                        <span>${contact.name}</span>
-                        <span>${contact.email}</span>
-                        <span>${contact.phone}</span>
-                        <span>${contact.department}</span>
-                        <button class="delete-btn" onclick="deleteContact(${contact.id})">Delete</button>
-                    </div>
-                    <textarea class="contact-notes">${contact.notes}</textarea>
-                `;
-                contactsList.appendChild(contactDiv);
-            });
+        function confirmDelete(type, id) {
+            if (window.confirm(`Are you sure you want to delete this ${type}?`)) {
+                if (type === 'task') deleteTask(id);
+                else if (type === 'contact') deleteContact(id);
+                else if (type === 'process') deleteProcess(id);
+            }
         }
 
-        function updateDepartmentFilter() {
-            const select = document.getElementById('sortDepartment');
-            departments = new Set(contacts.map(c => c.department).filter(Boolean));
-            
-            select.innerHTML = `
-                <option value="">All Departments</option>
-                ${[...departments].map(dept => `<option>${dept}</option>`).join('')}
-            `;
-        }
-
-        function clearContactForm() {
-            document.getElementById('contactName').value = '';
-            document.getElementById('contactEmail').value = '';
-            document.getElementById('contactPhone').value = '';
-            document.getElementById('contactDepartment').value = '';
-            document.getElementById('contactNotes').value = '';
+        function toggleNotes(header) {
+            const content = header.nextElementSibling;
+            content.classList.toggle('expanded');
         }
 
         // Storage Functions
-        function saveTasks() {
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-        }
+        function saveTasks() { localStorage.setItem('tasks', JSON.stringify(tasks)); }
+        function saveContacts() { localStorage.setItem('contacts', JSON.stringify(contacts)); }
+        function saveProcesses() { localStorage.setItem('processes', JSON.stringify(processes)); }
 
-        function saveContacts() {
-            localStorage.setItem('contacts', JSON.stringify(contacts));
-        }
-
-        function saveProcesses() {
-            localStorage.setItem('processes', JSON.stringify(processes));
-        }
-
-        // Initial Load
+        // Initialization
         window.onload = () => {
+            initCategories();
             renderTasks();
             renderContacts();
             renderProcesses();
-            updateDepartmentFilter();
         };
     </script>
 </body>
