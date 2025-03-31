@@ -242,7 +242,7 @@
         }
 
         .timeline-bar {
-            height: 6px;
+            height: 4px; /* Smaller progress bar */
             background-color: #e0e0e0;
             border-radius: 3px;
             overflow: hidden;
@@ -260,6 +260,58 @@
             justify-content: space-between;
             font-size: 11px;
             color: #666;
+        }
+
+        /* Contact info inline */
+        .contact-details {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        /* Collapsible sections */
+        .collapsible-section {
+            margin-bottom: 15px;
+        }
+
+        .collapsible-header {
+            padding: 8px 15px;
+            background-color: #1a73e8;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background-color: #f8f9fa;
+            border-radius: 0 0 4px 4px;
+        }
+
+        .collapsible-content.expanded {
+            max-height: 1000px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-top: none;
+        }
+
+        /* Department subheadings */
+        .department-group {
+            margin-bottom: 20px;
+        }
+
+        .department-heading {
+            background-color: #e9ecef;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-weight: bold;
         }
 
         @media (max-width: 768px) {
@@ -285,6 +337,11 @@
             button {
                 padding: 6px 12px;
             }
+
+            .contact-details {
+                flex-direction: column;
+                gap: 5px;
+            }
         }
     </style>
 </head>
@@ -305,36 +362,48 @@
                 <input type="text" id="newCategory" placeholder="New category">
                 <button onclick="addCategory()">Add</button>
             </div>
-            <div class="input-section">
-                <div class="input-group">
-                    <input type="text" id="taskTitle" placeholder="Task title">
+            
+            <div class="collapsible-section">
+                <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                    <span>New Task</span>
+                    <i class="fas fa-chevron-down"></i>
                 </div>
-                <div class="input-group">
-                    <label for="taskDue">Due Date</label>
-                    <input type="date" id="taskDue">
-                </div>
-                <div class="input-group">
-                    <label>Priority</label>
-                    <div class="star-rating" id="priorityStars">
-                        <i class="fas fa-star" data-value="1"></i>
-                        <i class="fas fa-star" data-value="2"></i>
-                        <i class="fas fa-star" data-value="3"></i>
-                        <i class="fas fa-star" data-value="4"></i>
-                        <i class="fas fa-star" data-value="5"></i>
+                <div class="collapsible-content">
+                    <div class="input-section">
+                        <div class="input-group">
+                            <input type="text" id="taskTitle" placeholder="Task title">
+                        </div>
+                        <div class="input-group">
+                            <label for="taskDue">Due Date</label>
+                            <input type="date" id="taskDue">
+                        </div>
+                        <div class="input-group">
+                            <label for="taskStart">Start Date</label>
+                            <input type="date" id="taskStart">
+                        </div>
+                        <div class="input-group">
+                            <label>Priority</label>
+                            <div class="star-rating" id="priorityStars">
+                                <i class="fas fa-star" data-value="1"></i>
+                                <i class="fas fa-star" data-value="2"></i>
+                                <i class="fas fa-star" data-value="3"></i>
+                                <i class="fas fa-star" data-value="4"></i>
+                                <i class="fas fa-star" data-value="5"></i>
+                            </div>
+                        </div>
+                        <button onclick="addTask()">Add Task</button>
+                    </div>
+                    
+                    <div class="notes-container">
+                        <textarea id="taskNotes" class="large-notes" placeholder="Notes..."></textarea>
                     </div>
                 </div>
-                <button onclick="addTask()">Add Task</button>
-            </div>
-            
-            <!-- New notes container that spans full width -->
-            <div class="notes-container">
-                <textarea id="taskNotes" class="large-notes" placeholder="Notes..."></textarea>
             </div>
 
             <div class="task-list">
                 <h3>Active Tasks</h3>
                 <div id="activeList"></div>
-                <h3 class="completed-header">Completed Tasks</h3>
+                <h3>Completed Tasks</h3>
                 <div id="doneList"></div>
             </div>
         </div>
@@ -342,17 +411,25 @@
         <!-- Contacts Tab -->
         <div id="contacts" class="tab-content">
             <input type="text" class="search-bar" id="contactSearch" placeholder="Search contacts..." oninput="searchContacts()">
-            <div class="input-section">
-                <input type="text" id="contactName" placeholder="Name">
-                <input type="email" id="contactEmail" placeholder="Email">
-                <input type="tel" id="contactPhone" placeholder="Phone">
-                <input type="text" id="contactDepartment" placeholder="Department">
-                <button onclick="addContact()">Add Contact</button>
-            </div>
             
-            <!-- New notes container that spans full width -->
-            <div class="notes-container">
-                <textarea id="contactNotes" class="large-notes" placeholder="Notes..."></textarea>
+            <div class="collapsible-section">
+                <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                    <span>New Contact</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="collapsible-content">
+                    <div class="input-section">
+                        <input type="text" id="contactName" placeholder="Name">
+                        <input type="email" id="contactEmail" placeholder="Email">
+                        <input type="tel" id="contactPhone" placeholder="Phone">
+                        <input type="text" id="contactDepartment" placeholder="Department">
+                        <button onclick="addContact()">Add Contact</button>
+                    </div>
+                    
+                    <div class="notes-container">
+                        <textarea id="contactNotes" class="large-notes" placeholder="Notes..."></textarea>
+                    </div>
+                </div>
             </div>
             
             <div id="contactsList"></div>
@@ -361,14 +438,22 @@
         <!-- Processes Tab -->
         <div id="processes" class="tab-content">
             <input type="text" class="search-bar" id="processSearch" placeholder="Search processes..." oninput="searchProcesses()">
-            <div class="input-section">
-                <input type="text" id="processTitle" placeholder="Process title">
-                <button onclick="addProcess()">Add Process</button>
-            </div>
             
-            <!-- New notes container that spans full width -->
-            <div class="notes-container">
-                <textarea id="processSteps" class="large-notes" placeholder="Step-by-step instructions..."></textarea>
+            <div class="collapsible-section">
+                <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                    <span>New Process</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="collapsible-content">
+                    <div class="input-section">
+                        <input type="text" id="processTitle" placeholder="Process title">
+                        <button onclick="addProcess()">Add Process</button>
+                    </div>
+                    
+                    <div class="notes-container">
+                        <textarea id="processSteps" class="large-notes" placeholder="Step-by-step instructions..."></textarea>
+                    </div>
+                </div>
             </div>
             
             <div id="processesList"></div>
@@ -439,6 +524,7 @@
                 title: document.getElementById('taskTitle').value.trim(),
                 category: document.getElementById('taskCategory').value,
                 due: document.getElementById('taskDue').value,
+                start: document.getElementById('taskStart').value,
                 priority: priorityText,
                 priorityValue: selectedPriority,
                 notes: document.getElementById('taskNotes').value,
@@ -461,11 +547,60 @@
             activeList.innerHTML = '';
             doneList.innerHTML = '';
 
-            tasks.forEach((task, index) => {
-                const container = task.completed ? doneList : activeList;
-                const taskElement = createTaskElement(task, index);
-                container.appendChild(taskElement);
+            // Group tasks by category for active tasks
+            const activeTasksByCategory = {};
+            const completedTasksByCategory = {};
+
+            tasks.forEach(task => {
+                const category = task.category || 'Uncategorized';
+                if (task.completed) {
+                    if (!completedTasksByCategory[category]) {
+                        completedTasksByCategory[category] = [];
+                    }
+                    completedTasksByCategory[category].push(task);
+                } else {
+                    if (!activeTasksByCategory[category]) {
+                        activeTasksByCategory[category] = [];
+                    }
+                    activeTasksByCategory[category].push(task);
+                }
             });
+
+            // Render active tasks with category headings
+            for (const category in activeTasksByCategory) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'department-group';
+                
+                const heading = document.createElement('div');
+                heading.className = 'department-heading';
+                heading.textContent = category;
+                categoryDiv.appendChild(heading);
+                
+                activeTasksByCategory[category].forEach((task, index) => {
+                    const taskElement = createTaskElement(task, index);
+                    categoryDiv.appendChild(taskElement);
+                });
+                
+                activeList.appendChild(categoryDiv);
+            }
+
+            // Render completed tasks with category headings
+            for (const category in completedTasksByCategory) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'department-group';
+                
+                const heading = document.createElement('div');
+                heading.className = 'department-heading';
+                heading.textContent = category;
+                categoryDiv.appendChild(heading);
+                
+                completedTasksByCategory[category].forEach((task, index) => {
+                    const taskElement = createTaskElement(task, index);
+                    categoryDiv.appendChild(taskElement);
+                });
+                
+                doneList.appendChild(categoryDiv);
+            }
         }
 
         function createTaskElement(task) {
@@ -474,15 +609,15 @@
             
             // Calculate timeline progress if due date exists
             let timelineHTML = '';
-            if (task.due) {
-                const progress = calculateTimelineProgress(task.created, task.due);
+            if (task.due && task.start) {
+                const progress = calculateTimelineProgress(task.start, task.due);
                 timelineHTML = `
                     <div class="timeline-container">
                         <div class="timeline-bar">
                             <div class="timeline-progress" style="width: ${progress.percentage}%"></div>
                         </div>
                         <div class="timeline-dates">
-                            <span>${formatDate(task.created)}</span>
+                            <span>${formatDate(task.start)}</span>
                             <span>${formatDate(task.due)}</span>
                         </div>
                     </div>
@@ -515,19 +650,19 @@
                             ${categories.map(opt => `<option ${task.category === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                         </select>
                     </span>
+                    <span>Due: 
+                        <input type="date" class="editable" value="${task.due}" 
+                               onchange="updateTaskField(${task.id}, 'due', this.value)">
+                    </span>
                     <span>Priority: 
                         <div class="star-rating">
                             ${starsHTML}
                         </div>
                     </span>
-                    <span>Due: 
-                        <input type="date" class="editable" value="${task.due}" 
-                               onchange="updateTaskField(${task.id}, 'due', this.value)">
-                    </span>
                 </div>
                 ${timelineHTML}
                 <div class="notes-header" onclick="toggleNotes(this)">
-                    📝 Notes (${task.notes.length ? task.notes.split(/\s+/).length + ' words' : 'empty'})
+                    📝 Notes
                 </div>
                 <div class="notes-content">
                     <textarea class="editable" oninput="updateTaskField(${task.id}, 'notes', this.value)"
@@ -538,9 +673,9 @@
             return taskElement;
         }
 
-        function calculateTimelineProgress(createdDate, dueDate) {
+        function calculateTimelineProgress(startDate, dueDate) {
             const now = new Date();
-            const start = new Date(createdDate);
+            const start = new Date(startDate);
             const end = new Date(dueDate);
             
             // Ensure dates are valid
@@ -622,39 +757,74 @@
 
         function renderContacts(filteredContacts = contacts) {
             const contactsList = document.getElementById('contactsList');
-            contactsList.innerHTML = filteredContacts.map(contact => `
-                <div class="contact-item">
-                    <div class="move-buttons">
-                        <button onclick="moveContact(${contact.id}, 'up')">↑</button>
-                        <button onclick="moveContact(${contact.id}, 'down')">↓</button>
-                    </div>
-                    <div class="contact-header">
-                        <span class="editable" contenteditable="true" 
-                              oninput="updateContactField(${contact.id}, 'name', this.innerText)">
-                            ${contact.name}
-                        </span>
-                    </div>
-                    <div class="contact-details">
-                        <div>Email: <input type="email" value="${contact.email}" 
-                               onchange="updateContactField(${contact.id}, 'email', this.value)"></div>
-                        <div>Phone: <input type="tel" value="${contact.phone}" 
-                               onchange="updateContactField(${contact.id}, 'phone', this.value)"></div>
-                        <div>Department: <input type="text" value="${contact.department}" 
-                               onchange="updateContactField(${contact.id}, 'department', this.value)"></div>
-                    </div>
-                    <div class="notes-header" onclick="toggleNotes(this)">
-                        📝 Notes (${contact.notes.length ? contact.notes.split(/\s+/).length + ' words' : 'empty'})
-                    </div>
-                    <div class="notes-content">
-                        <textarea class="editable" 
-                                  oninput="updateContactField(${contact.id}, 'notes', this.value)"
-                                  style="width:100%; min-height: 120px;">
-                            ${contact.notes}
-                        </textarea>
-                    </div>
-                    <button class="delete-btn" onclick="confirmDelete('contact', ${contact.id})">Delete</button>
+            contactsList.innerHTML = '';
+            
+            // Group contacts by department
+            const contactsByDepartment = {};
+            
+            filteredContacts.forEach(contact => {
+                const department = contact.department || 'Uncategorized';
+                if (!contactsByDepartment[department]) {
+                    contactsByDepartment[department] = [];
+                }
+                contactsByDepartment[department].push(contact);
+            });
+            
+            // Render each department group
+            for (const department in contactsByDepartment) {
+                const departmentDiv = document.createElement('div');
+                departmentDiv.className = 'department-group';
+                
+                const heading = document.createElement('div');
+                heading.className = 'department-heading';
+                heading.textContent = department;
+                departmentDiv.appendChild(heading);
+                
+                contactsByDepartment[department].forEach(contact => {
+                    const contactElement = createContactElement(contact);
+                    departmentDiv.appendChild(contactElement);
+                });
+                
+                contactsList.appendChild(departmentDiv);
+            }
+        }
+
+        function createContactElement(contact) {
+            const contactElement = document.createElement('div');
+            contactElement.className = 'contact-item';
+            
+            contactElement.innerHTML = `
+                <div class="move-buttons">
+                    <button onclick="moveContact(${contact.id}, 'up')">↑</button>
+                    <button onclick="moveContact(${contact.id}, 'down')">↓</button>
                 </div>
-            `).join('');
+                <div class="contact-header">
+                    <span class="editable" contenteditable="true" 
+                          oninput="updateContactField(${contact.id}, 'name', this.innerText)">
+                        ${contact.name}
+                    </span>
+                </div>
+                <div class="contact-details">
+                    <span>Email: <input type="email" class="editable" value="${contact.email}" 
+                           onchange="updateContactField(${contact.id}, 'email', this.value)"></span>
+                    <span>Phone: <input type="tel" class="editable" value="${contact.phone}" 
+                           onchange="updateContactField(${contact.id}, 'phone', this.value)"></span>
+                    <span>Department: <input type="text" class="editable" value="${contact.department}" 
+                           onchange="updateContactField(${contact.id}, 'department', this.value)"></span>
+                </div>
+                <div class="notes-header" onclick="toggleNotes(this)">
+                    📝 Notes
+                </div>
+                <div class="notes-content">
+                    <textarea class="editable" 
+                              oninput="updateContactField(${contact.id}, 'notes', this.value)"
+                              style="width:100%; min-height: 120px;">
+                        ${contact.notes}
+                    </textarea>
+                </div>
+                <button class="delete-btn" onclick="confirmDelete('contact', ${contact.id})">Delete</button>
+            `;
+            return contactElement;
         }
 
         function moveContact(id, direction) {
@@ -688,8 +858,11 @@
 
         function renderProcesses(filteredProcesses = processes) {
             const processesList = document.getElementById('processesList');
-            processesList.innerHTML = filteredProcesses.map(process => `
-                <div class="process-item">
+            processesList.innerHTML = filteredProcesses.map((process, index) => {
+                const processElement = document.createElement('div');
+                processElement.className = 'process-item';
+                
+                processElement.innerHTML = `
                     <div class="move-buttons">
                         <button onclick="moveProcess(${process.id}, 'up')">↑</button>
                         <button onclick="moveProcess(${process.id}, 'down')">↓</button>
@@ -701,7 +874,7 @@
                         </span>
                     </div>
                     <div class="notes-header" onclick="toggleNotes(this)">
-                        📝 Steps (${process.steps.length ? process.steps.split(/\n/).length + ' steps' : 'empty'})
+                        📝 Steps
                     </div>
                     <div class="notes-content">
                         <textarea class="editable" 
@@ -711,8 +884,9 @@
                         </textarea>
                     </div>
                     <button class="delete-btn" onclick="confirmDelete('process', ${process.id})">Delete</button>
-                </div>
-            `).join('');
+                `;
+                return processElement.outerHTML;
+            }).join('');
         }
 
         function moveProcess(id, direction) {
@@ -727,6 +901,14 @@
         }
 
         // Common Functions
+        function toggleCollapsible(header) {
+            const content = header.nextElementSibling;
+            content.classList.toggle('expanded');
+            const icon = header.querySelector('i');
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
+        }
+
         function confirmDelete(type, id) {
             if (window.confirm(`Are you sure you want to delete this ${type}?`)) {
                 if (type === 'task') deleteTask(id);
@@ -806,6 +988,7 @@
         function clearTaskForm() {
             document.getElementById('taskTitle').value = '';
             document.getElementById('taskDue').value = '';
+            document.getElementById('taskStart').value = '';
             document.getElementById('taskNotes').value = '';
             // Reset star rating
             selectedPriority = 1;
@@ -844,6 +1027,11 @@
             renderTasks();
             renderContacts();
             renderProcesses();
+            
+            // Set up collapsible sections
+            document.querySelectorAll('.collapsible-header').forEach(header => {
+                header.addEventListener('click', () => toggleCollapsible(header));
+            });
         };
     </script>
 </body>
