@@ -183,21 +183,23 @@
             font-size: 13px;
             width: 100%;
         }
-        /* ===== Mini-Calendar Styling ===== */
-        /* Targets the popup calendar when clicking a date input */
-        input[type="date"]::-webkit-datetime-edit,
-        input[type="date"]::-webkit-datetime-edit-fields-wrapper,
-        input[type="date"]::-webkit-datetime-edit-year-field,
-        input[type="date"]::-webkit-datetime-edit-month-field,
-        input[type="date"]::-webkit-datetime-edit-day-field,
-        input[type="date"]::-webkit-datetime-edit-text {
-            color: #333; /* Dark gray (matches default day numbers) */
+        
+        /* Fix mini calander text color*/
+        input[type="date"] {
+            color: #333;
+            background-color: white;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
         }
         
-        /* Optional: Style the calendar dropdown icon */
+        /* Style the calendar picker icon */
         input[type="date"]::-webkit-calendar-picker-indicator {
-            filter: none; /* Prevents inversion (if dark mode is applied) */
+            filter: none;
             cursor: pointer;
+            padding: 0;
+            margin-left: 5px;
         }
         
         button {
