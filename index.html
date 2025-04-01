@@ -449,15 +449,16 @@
         }
 
         .search-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
+            display: inline-flex;
+            flex-grow: 1;
+            margin-bottom: 0;
             align-items: center;
         }
 
         .search-bar {
-            width: 100%;
-            max-width: 300px;
+            flex-grow: 1;
+            max-width: 400px;
+            margin-left: 10px;
         }
 
         .filter-btn {
@@ -617,7 +618,8 @@
         }
 
         .new-item-btn {
-            margin: 10px 0;
+            min-width: 120px;
+            margin-right: 10px;
             padding: 8px 15px;
             font-size: 13px;
             background-color: #28a745;
@@ -689,8 +691,10 @@
         }
 
         .waiting-on-input {
-            margin-left: 10px;
-            width: 150px;
+            height: 36px;
+            width: 250px !important;
+            margin-left: 0 !important;
+            margin-right: 10px;
             padding: 5px;
             font-size: 13px;
             border: 1px solid #ddd;
@@ -1011,12 +1015,7 @@
 
         /* Contact Name and Waiting On adjustments */
         .contact-name-input {
-            width: 50% !important;
-        }
-
-        .waiting-on-input {
-            width: 200px !important;
-            margin-left: 5px !important;
+            width: 150% !important;
         }
 
         /* Subheading controls spacing */
@@ -1216,12 +1215,15 @@
 
         <!-- Tasks Tab -->
         <div id="tasks" class="tab-content active">
-            <button class="new-item-btn" onclick="toggleInputs('tasks')">
-                <i class="fas fa-plus"></i> New Task
-            </button>
-            <div class="search-container">
-                <input type="text" class="search-bar" id="taskSearch" placeholder="Search tasks..." oninput="searchTasks()">
+            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                <button class="new-item-btn" onclick="toggleInputs('tasks')">
+                    <i class="fas fa-plus"></i> New Task
+                </button>
+                <div class="search-container">
+                    <input type="text" class="search-bar" id="taskSearch" placeholder="Search tasks..." oninput="searchTasks()">
+                </div>
             </div>
+            
             <div class="input-section collapsed">
                 <div class="input-group">
                     <input type="text" id="taskTitle" placeholder="Task title">
@@ -1276,12 +1278,15 @@
 
         <!-- Notes Tab -->
         <div id="notes" class="tab-content">
-            <button class="new-item-btn" onclick="toggleInputs('notes')">
-                <i class="fas fa-plus"></i> New Note
-            </button>
-            <div class="search-container">
-                <input type="text" class="search-bar" id="noteSearch" placeholder="Search notes..." oninput="searchNotes()">
+            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                <button class="new-item-btn" onclick="toggleInputs('notes')">
+                    <i class="fas fa-plus"></i> New Note
+                </button>
+                <div class="search-container">
+                    <input type="text" class="search-bar" id="noteSearch" placeholder="Search notes..." oninput="searchNotes()">
+                </div>
             </div>
+            
             <div class="input-section collapsed">
                 <div class="input-group" style="width: 60%;">
                     <input type="text" id="noteTitle" placeholder="Note title">
@@ -1303,17 +1308,20 @@
 
         <!-- Contacts Tab -->
         <div id="contacts" class="tab-content">
-            <button class="new-item-btn" onclick="toggleInputs('contacts')">
-                <i class="fas fa-plus"></i> New Contact
-            </button>
-            <div class="search-container">
-                <input type="text" class="search-bar" id="contactSearch" placeholder="Search contacts..." oninput="searchContacts()">
-                <button class="filter-btn" onclick="toggleFlaggedContacts()">
-                    <i class="fas fa-flag"></i> Flagged Only
+            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                <button class="new-item-btn" onclick="toggleInputs('contacts')">
+                    <i class="fas fa-plus"></i> New Contact
                 </button>
+                <div class="search-container">
+                    <input type="text" class="search-bar" id="contactSearch" placeholder="Search contacts..." oninput="searchContacts()">
+                    <button class="filter-btn" onclick="toggleFlaggedContacts()">
+                        <i class="fas fa-flag"></i> Flagged Only
+                    </button>
+                </div>
             </div>
+            
             <div class="input-section collapsed">
-                <div class="input-group" style="width: 30%;">
+                <div class="input-group" style="flex: 1.5;">
                     <input type="text" id="contactName" placeholder="Name" class="contact-name-input">
                 </div>
                 <div class="input-group">
@@ -1328,7 +1336,7 @@
                 <input type="text" class="waiting-on-input" placeholder="Waiting on..." id="contactWaitingOn">
                 <button onclick="addContact()">Add Contact</button>
                 
-                <div class="notes-container">
+                <div class="notes-container" style="width: 100%; margin-top: 10px;">
                     <textarea id="contactNotes" class="large-notes" placeholder="Notes..."></textarea>
                 </div>
             </div>
@@ -1343,12 +1351,15 @@
 
         <!-- Processes Tab -->
         <div id="processes" class="tab-content">
-            <button class="new-item-btn" onclick="toggleInputs('processes')">
-                <i class="fas fa-plus"></i> New Process
-            </button>
-            <div class="search-container">
-                <input type="text" class="search-bar" id="processSearch" placeholder="Search processes..." oninput="searchProcesses()">
+            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                <button class="new-item-btn" onclick="toggleInputs('processes')">
+                    <i class="fas fa-plus"></i> New Process
+                </button>
+                <div class="search-container">
+                    <input type="text" class="search-bar" id="processSearch" placeholder="Search processes..." oninput="searchProcesses()">
+                </div>
             </div>
+            
             <div class="input-section collapsed">
                 <div class="input-group">
                     <input type="text" id="processTitle" placeholder="Process title">
